@@ -1,7 +1,19 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
-void main() {
+void main() async {
+  // Required before using plugins in main().
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // On web, sqflite needs a custom database factory backed by IndexedDB.
+  // On native platforms the default factory is used automatically.
+  if (kIsWeb) {
+    databaseFactory = databaseFactoryFfiWeb;
+  }
+
   runApp(const TaskPipelineApp());
 }
 
