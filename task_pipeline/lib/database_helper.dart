@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
+import 'models.dart';
 
 /// Manages all SQLite database operations for Task Pipeline.
 /// Uses a singleton so the database is opened only once.
@@ -54,10 +55,11 @@ class DatabaseHelper {
     return db.insert('projects', {'name': name});
   }
 
-  /// Returns all projects as a list of maps with keys: id, name.
-  Future<List<Map<String, dynamic>>> getProjects() async {
+  /// Returns all projects ordered by insertion.
+  Future<List<Project>> getProjects() async {
     final db = await database;
-    return db.query('projects', orderBy: 'id ASC');
+    final rows = await db.query('projects', orderBy: 'id ASC');
+    return rows.map(Project.fromMap).toList();
   }
 
   // ---------------------------------------------------------------------------
@@ -71,13 +73,14 @@ class DatabaseHelper {
   }
 
   /// Returns all tasks belonging to [projectId], ordered by insertion.
-  Future<List<Map<String, dynamic>>> getTasks(int projectId) async {
+  Future<List<Task>> getTasks(int projectId) async {
     final db = await database;
-    return db.query(
+    final rows = await db.query(
       'tasks',
       where: 'project_id = ?',
       whereArgs: [projectId],
       orderBy: 'id ASC',
     );
+    return rows.map(Task.fromMap).toList();
   }
 }

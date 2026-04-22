@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
+import 'database_helper.dart';
+import 'models.dart';
 
 void main() async {
   // Required before using plugins in main().
@@ -46,11 +48,22 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // In-memory list of project names.
-  final List<String> _projects = [];
+  List<Project> _projects = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProjects();
+  }
+
+  Future<void> _loadProjects() async {
+    final projects = await DatabaseHelper.instance.getProjects();
+    print('Loaded ${projects.length} projects from database');
+    setState(() => _projects = projects);
+  }
 
   // Shows a dialog prompting the user to enter a project name.
-  // If saved, adds the name to the project list.
+  // If saved, persists to the database and reloads the list.
   void _showAddProjectDialog() {
     final TextEditingController controller = TextEditingController();
 
@@ -70,12 +83,13 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Text('Cancel'),
             ),
             FilledButton(
-              onPressed: () {
+              onPressed: () async {
                 final name = controller.text.trim();
                 if (name.isNotEmpty) {
-                  setState(() => _projects.add(name));
+                  await DatabaseHelper.instance.insertProject(name);
+                  await _loadProjects();
                 }
-                Navigator.of(context).pop();
+                if (context.mounted) Navigator.of(context).pop();
               },
               child: const Text('Save'),
             ),
@@ -117,16 +131,18 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.all(12),
       itemCount: _projects.length,
       itemBuilder: (context, index) {
-        final projectName = _projects[index];
+        final project = _projects[index];
         return Card(
           child: ListTile(
-            title: Text(projectName),
+            title: Text(project.name),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              // Navigate to the tasks screen for the selected project.
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => TasksScreen(projectName: projectName),
+                  builder: (_) => TasksScreen(
+                    projectId: project.id,
+                    projectName: project.name,
+                  ),
                 ),
               );
             },
@@ -142,20 +158,35 @@ class _HomeScreenState extends State<HomeScreen> {
 // ---------------------------------------------------------------------------
 
 class TasksScreen extends StatefulWidget {
+  final int projectId;
   final String projectName;
 
-  const TasksScreen({super.key, required this.projectName});
+  const TasksScreen({
+    super.key,
+    required this.projectId,
+    required this.projectName,
+  });
 
   @override
   State<TasksScreen> createState() => _TasksScreenState();
 }
 
 class _TasksScreenState extends State<TasksScreen> {
-  // In-memory list of task names for this project.
-  final List<String> _tasks = [];
+  List<Task> _tasks = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTasks();
+  }
+
+  Future<void> _loadTasks() async {
+    final tasks = await DatabaseHelper.instance.getTasks(widget.projectId);
+    setState(() => _tasks = tasks);
+  }
 
   // Shows a dialog prompting the user to enter a task name.
-  // If saved, adds the task to the list.
+  // If saved, persists to the database and reloads the list.
   void _showAddTaskDialog() {
     final TextEditingController controller = TextEditingController();
 
@@ -175,12 +206,13 @@ class _TasksScreenState extends State<TasksScreen> {
               child: const Text('Cancel'),
             ),
             FilledButton(
-              onPressed: () {
+              onPressed: () async {
                 final name = controller.text.trim();
                 if (name.isNotEmpty) {
-                  setState(() => _tasks.add(name));
+                  await DatabaseHelper.instance.insertTask(name, widget.projectId);
+                  await _loadTasks();
                 }
-                Navigator.of(context).pop();
+                if (context.mounted) Navigator.of(context).pop();
               },
               child: const Text('Save'),
             ),
@@ -207,7 +239,7 @@ class _TasksScreenState extends State<TasksScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Random Task'),
-          content: Text(randomTask, style: const TextStyle(fontSize: 18)),
+          content: Text(randomTask.name, style: const TextStyle(fontSize: 18)),
           actions: [
             FilledButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -222,7 +254,6 @@ class _TasksScreenState extends State<TasksScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Display the project name in the app bar.
       appBar: AppBar(
         title: Text(widget.projectName),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -274,7 +305,7 @@ class _TasksScreenState extends State<TasksScreen> {
       itemBuilder: (context, index) {
         return Card(
           child: ListTile(
-            title: Text(_tasks[index]),
+            title: Text(_tasks[index].name),
           ),
         );
       },
