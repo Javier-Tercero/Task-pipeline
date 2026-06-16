@@ -17,7 +17,7 @@ final class AddTask extends TaskEvent {
 
 /// Renames the task identified by [id], then reloads [projectId].
 final class EditTask extends TaskEvent {
-  final int id;
+  final String id;
   final String newName;
   final String projectId;
   EditTask(this.id, this.newName, this.projectId);
@@ -25,7 +25,7 @@ final class EditTask extends TaskEvent {
 
 /// Deletes the task identified by [id], then reloads [projectId].
 final class DeleteTask extends TaskEvent {
-  final int id;
+  final String id;
   final String projectId;
   DeleteTask(this.id, this.projectId);
 }

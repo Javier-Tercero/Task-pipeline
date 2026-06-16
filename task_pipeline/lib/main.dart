@@ -8,7 +8,7 @@ import 'firebase_options.dart';
 import 'package:task_pipeline/features/projects/data/firestore_project_service.dart';
 import 'package:task_pipeline/features/projects/logic/project_bloc.dart';
 import 'package:task_pipeline/features/projects/view/projects_screen.dart';
-import 'package:task_pipeline/features/tasks/data/task_service.dart';
+import 'package:task_pipeline/features/tasks/data/firestore_task_service.dart';
 import 'package:task_pipeline/features/tasks/logic/task_bloc.dart';
 
 void main() async {
@@ -42,7 +42,7 @@ class TaskPipelineApp extends StatelessWidget {
         // TaskBloc is app-wide; TasksScreen overrides it with a scoped instance
         // per project so each navigation gets a fresh, isolated state.
         BlocProvider(
-          create: (_) => TaskBloc(TaskService()),
+          create: (_) => TaskBloc(FirestoreTaskService()),
         ),
       ],
       child: MaterialApp(

@@ -22,18 +22,18 @@ class TaskService {
     await db.insert('tasks', {'name': name, 'project_id': int.parse(projectId)});
   }
 
-  Future<void> editTask(int id, String newName) async {
+  Future<void> editTask(String id, String newName) async {
     final db = await DatabaseHelper.instance.database;
     await db.update(
       'tasks',
       {'name': newName},
       where: 'id = ?',
-      whereArgs: [id],
+      whereArgs: [int.parse(id)],
     );
   }
 
-  Future<void> deleteTask(int id) async {
+  Future<void> deleteTask(String id) async {
     final db = await DatabaseHelper.instance.database;
-    await db.delete('tasks', where: 'id = ?', whereArgs: [id]);
+    await db.delete('tasks', where: 'id = ?', whereArgs: [int.parse(id)]);
   }
 }

@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:task_pipeline/features/tasks/data/task_service.dart';
+import 'package:task_pipeline/features/tasks/data/firestore_task_service.dart';
 import 'package:task_pipeline/features/tasks/logic/task_bloc.dart';
 import 'package:task_pipeline/features/tasks/widgets/task_card.dart';
 import 'package:task_pipeline/models/task.dart';
@@ -22,7 +22,7 @@ class TasksScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       // Create a fresh bloc scoped to this project and immediately load tasks.
-      create: (_) => TaskBloc(TaskService())..add(LoadTasks(projectId)),
+      create: (_) => TaskBloc(FirestoreTaskService())..add(LoadTasks(projectId)),
       child: _TasksView(projectId: projectId, projectName: projectName),
     );
   }
