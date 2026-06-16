@@ -133,25 +133,30 @@ class ProjectsScreen extends StatelessWidget {
             if (state.projects.isEmpty) {
               return const EmptyState(message: 'No projects yet. Tap + to add one.');
             }
-            return ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: state.projects.length,
-              itemBuilder: (context, index) {
-                final project = state.projects[index];
-                return ProjectCard(
-                  project: project,
-                  onEdit: () => _showEditDialog(context, project),
-                  onDelete: () => _showDeleteDialog(context, project),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => TasksScreen(
-                        projectId: project.id,
-                        projectName: project.name,
+            final screenHeight = MediaQuery.of(context).size.height;
+            return SizedBox(
+              height: screenHeight * 0.6,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(12),
+                scrollDirection: Axis.horizontal,
+                itemCount: state.projects.length,
+                itemBuilder: (context, index) {
+                  final project = state.projects[index];
+                  return ProjectCard(
+                    project: project,
+                    onEdit: () => _showEditDialog(context, project),
+                    onDelete: () => _showDeleteDialog(context, project),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => TasksScreen(
+                          projectId: project.id,
+                          projectName: project.name,
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             );
           }
           // ProjectsInitial — nothing to show yet.
