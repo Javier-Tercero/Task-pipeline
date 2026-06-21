@@ -8,14 +8,16 @@ final class LoadProjects extends ProjectEvent {}
 /// Persists a new project with [name].
 final class AddProject extends ProjectEvent {
   final String name;
-  AddProject(this.name);
+  final String? summary;
+  AddProject(this.name, {this.summary});
 }
 
 /// Renames the project identified by [id].
 final class EditProject extends ProjectEvent {
   final String id;
-  final String newName;
-  EditProject(this.id, this.newName);
+  final String? newName;
+  final String? newSummary;
+  EditProject(this.id, {this.newName, this.newSummary});
 }
 
 /// Deletes the project identified by [id].

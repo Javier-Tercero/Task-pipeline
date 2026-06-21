@@ -23,16 +23,20 @@ class FirestoreProjectService {
   }
 
   /// Adds a new project document with an auto-generated ID.
-  Future<void> addProject(String name) async {
+  Future<void> addProject(String name, {String? summary}) async {
     await _projects.add({
       'name': name,
+      'summary': summary,
       'createdAt': Timestamp.now(),
     });
   }
 
-  /// Renames the project identified by [id].
-  Future<void> editProject(String id, String newName) async {
-    await _projects.doc(id).update({'name': newName});
+  /// Updates the project identified by [id]. Omitted fields are left untouched.
+  Future<void> editProject(String id, {String? newName, String? newSummary}) async {
+    await _projects.doc(id).update({
+      'name': ?newName,
+      'summary': ?newSummary,
+    });
   }
 
   /// Deletes the project document identified by [id].

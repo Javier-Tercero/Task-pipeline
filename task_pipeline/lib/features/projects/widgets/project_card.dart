@@ -27,32 +27,55 @@ class ProjectCard extends StatelessWidget {
         child: Card(
           child: InkWell(
             onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    project.name,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const Spacer(),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final padding = constraints.maxHeight * 0.1;
+                final cardWidth = constraints.maxHeight - padding * 0.5;
+                final innerHeight = constraints.maxHeight - padding * 2;
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: padding * 0.5, vertical: padding),
+                  child: Stack(
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: onEdit,
+                      Align(
+                        alignment: Alignment.topCenter,
+                        child: Text(
+                          project.name,
+                          style: TextStyle(fontSize: (cardWidth * 0.07).clamp(14, double.infinity), fontWeight: FontWeight.bold),
+                        ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: onDelete,
+                      if (project.summary != null)
+                        Positioned(
+                          top: innerHeight / 3,
+                          left: 0,
+                          right: 0,
+                          child: Text(
+                            project.summary!,
+                            textAlign: TextAlign.justify,
+                            style: TextStyle(fontSize: (cardWidth * 0.03).clamp(12, double.infinity), color: Colors.grey),
+                          ),
+                        ),
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: onEdit,
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: onDelete,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ),

@@ -1,9 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'firebase_options.dart';
 import 'package:task_pipeline/features/projects/data/firestore_project_service.dart';
 import 'package:task_pipeline/features/projects/logic/project_bloc.dart';
@@ -14,12 +11,6 @@ import 'package:task_pipeline/features/tasks/logic/task_bloc.dart';
 void main() async {
   // Required before using plugins in main().
   WidgetsFlutterBinding.ensureInitialized();
-
-  // On web, sqflite needs a custom database factory backed by IndexedDB.
-  // On native platforms the default factory is used automatically.
-  if (kIsWeb) {
-    databaseFactory = databaseFactoryFfiWeb;
-  }
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,

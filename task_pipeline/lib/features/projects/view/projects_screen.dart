@@ -14,17 +14,27 @@ class ProjectsScreen extends StatelessWidget {
   // ---------------------------------------------------------------------------
 
   void _showAddDialog(BuildContext context) {
-    final controller = TextEditingController();
+    final nameController = TextEditingController();
+    final summaryController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('New Project'),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            decoration: const InputDecoration(hintText: 'Project name'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                autofocus: true,
+                decoration: const InputDecoration(hintText: 'Project name'),
+              ),
+              TextField(
+                controller: summaryController,
+                decoration: const InputDecoration(hintText: 'Project summary'),
+              ),
+            ],
           ),
           actions: [
             TextButton(
@@ -33,10 +43,15 @@ class ProjectsScreen extends StatelessWidget {
             ),
             FilledButton(
               onPressed: () {
-                final name = controller.text.trim();
+                final name = nameController.text.trim();
                 if (name.isNotEmpty) {
                   // Use outer context — dialog context may not carry the bloc.
-                  context.read<ProjectBloc>().add(AddProject(name));
+                  final summary = summaryController.text.trim();
+                  if (summary.isNotEmpty) {
+                    context.read<ProjectBloc>().add(AddProject(name, summary: summary));
+                  } else {
+                    context.read<ProjectBloc>().add(AddProject(name));
+                  }
                 }
                 Navigator.of(dialogContext).pop();
               },
@@ -45,20 +60,35 @@ class ProjectsScreen extends StatelessWidget {
           ],
         );
       },
-    );
+    ).then((_) {
+      nameController.dispose();
+      summaryController.dispose();
+    });
   }
 
   void _showEditDialog(BuildContext context, Project project) {
-    final controller = TextEditingController(text: project.name);
+    final nameController = TextEditingController(text: project.name);
+    final summaryController = TextEditingController(text: project.summary);
+
 
     showDialog(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: Text(project.name),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                autofocus: true,
+              ),
+              TextField(
+                controller: summaryController,
+                maxLines: null,
+                decoration: const InputDecoration(hintText: 'Project summary'),
+              ),
+            ],
           ),
           actions: [
             TextButton(
@@ -67,9 +97,14 @@ class ProjectsScreen extends StatelessWidget {
             ),
             FilledButton(
               onPressed: () {
-                final name = controller.text.trim();
-                if (name.isNotEmpty) {
-                  context.read<ProjectBloc>().add(EditProject(project.id, name));
+                final name = nameController.text.trim();
+                final summary = summaryController.text.trim();
+                final newName = name.isNotEmpty ? name : null;
+                final newSummary = summary.isNotEmpty ? summary : null;
+                if (newName != null || newSummary != null) {
+                  context.read<ProjectBloc>().add(
+                        EditProject(project.id, newName: newName, newSummary: newSummary),
+                      );
                 }
                 Navigator.of(dialogContext).pop();
               },
@@ -78,7 +113,10 @@ class ProjectsScreen extends StatelessWidget {
           ],
         );
       },
-    );
+    ).then((_) {
+      nameController.dispose();
+      summaryController.dispose();
+    });
   }
 
   void _showDeleteDialog(BuildContext context, Project project) {

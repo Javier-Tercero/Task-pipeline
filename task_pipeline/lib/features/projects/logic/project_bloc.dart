@@ -30,7 +30,7 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
   // to trigger a reload after a successful write.
   Future<void> _onAdd(AddProject event, Emitter<ProjectState> emit) async {
     try {
-      await _service.addProject(event.name);
+      await _service.addProject(event.name, summary: event.summary);
     } catch (e) {
       emit(ProjectsError(e.toString()));
     }
@@ -38,7 +38,7 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
 
   Future<void> _onEdit(EditProject event, Emitter<ProjectState> emit) async {
     try {
-      await _service.editProject(event.id, event.newName);
+      await _service.editProject(event.id, newName: event.newName, newSummary: event.newSummary);
     } catch (e) {
       emit(ProjectsError(e.toString()));
     }
