@@ -6,8 +6,49 @@ import 'package:task_pipeline/features/tasks/view/tasks_screen.dart';
 import 'package:task_pipeline/models/project.dart';
 import 'package:task_pipeline/shared/widgets/empty_state.dart';
 
-class ProjectsScreen extends StatelessWidget {
+class ProjectsScreen extends StatefulWidget {
   const ProjectsScreen({super.key});
+
+  @override
+  State<ProjectsScreen> createState() => _ProjectsScreenState();
+}
+
+
+class _ProjectsScreenState extends State<ProjectsScreen> {
+
+  // ---------------------------------------------------------------------------
+  // State for the project display PageView
+  // ---------------------------------------------------------------------------
+
+  late PageController _pageController;
+  double? _currentViewPointFraction;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final size = MediaQuery.of(context).size;
+    final cardHeight = size.height * 0.8;
+    final cardWidth = cardHeight * 5/7;// aspect ratio
+    final newFraction = cardWidth / size.width; 
+
+    if (_currentViewPointFraction != newFraction) {
+      final currentPage = _pageController.hasClients ? _pageController.page ?? _pageController.initialPage.toDouble() : 0.0;
+      _pageController.dispose();
+      _pageController = PageController(viewportFraction: newFraction, initialPage: currentPage.round(),);
+      _currentViewPointFraction = newFraction;
+    }
+  }
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   // ---------------------------------------------------------------------------
   // Dialogs
@@ -155,10 +196,6 @@ class ProjectsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Task Pipeline'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
       body: BlocBuilder<ProjectBloc, ProjectState>(
         builder: (context, state) {
           if (state is ProjectsLoading) {
@@ -172,26 +209,35 @@ class ProjectsScreen extends StatelessWidget {
               return const EmptyState(message: 'No projects yet. Tap + to add one.');
             }
             final screenHeight = MediaQuery.of(context).size.height;
-            return SizedBox(
-              height: screenHeight * 0.6,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(12),
-                scrollDirection: Axis.horizontal,
+            return Padding(
+              padding: EdgeInsets.symmetric(vertical: screenHeight * 0.1),
+              child: PageView.builder(
+                controller: _pageController,
                 itemCount: state.projects.length,
                 itemBuilder: (context, index) {
                   final project = state.projects[index];
-                  return ProjectCard(
-                    project: project,
-                    onEdit: () => _showEditDialog(context, project),
-                    onDelete: () => _showDeleteDialog(context, project),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => TasksScreen(
-                          projectId: project.id,
-                          projectName: project.name,
+                  return AnimatedBuilder(
+                    animation: _pageController,
+                    builder: (context, child) {
+                      final delta = (_pageController.page ?? _pageController.initialPage.toDouble()) - index;
+                      final scale = (1 - delta.abs() * 0.3).clamp(0.7, 1.0);
+                      return Transform.scale(
+                        scale: scale,
+                        child: ProjectCard(
+                          project: project,
+                          onEdit: () => _showEditDialog(context, project),
+                          onDelete: () => _showDeleteDialog(context, project),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => TasksScreen(
+                                projectId: project.id,
+                                projectName: project.name,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   );
                 },
               ),
