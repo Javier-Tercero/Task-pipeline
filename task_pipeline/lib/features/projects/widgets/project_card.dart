@@ -30,17 +30,17 @@ class ProjectCard extends StatelessWidget {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final padding = constraints.maxHeight * 0.1;
-                final cardWidth = constraints.maxHeight - padding * 0.5;
-                final innerHeight = constraints.maxHeight - padding * 2;
+                final innerWidth = constraints.maxWidth - padding;
+                final innerHeight = constraints.maxHeight - padding * 1.5;
                 return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: padding * 0.5, vertical: padding),
+                  padding: EdgeInsets.symmetric(horizontal: padding * 0.5, vertical: padding).copyWith(bottom: padding * 0.5),
                   child: Stack(
                     children: [
                       Align(
                         alignment: Alignment.topCenter,
                         child: Text(
                           project.name,
-                          style: TextStyle(fontSize: (cardWidth * 0.07).clamp(14, double.infinity), fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: (innerWidth * 0.07).clamp(14, double.infinity), fontWeight: FontWeight.bold),
                         ),
                       ),
                       if (project.summary != null)
@@ -51,7 +51,7 @@ class ProjectCard extends StatelessWidget {
                           child: Text(
                             project.summary!,
                             textAlign: TextAlign.justify,
-                            style: TextStyle(fontSize: (cardWidth * 0.03).clamp(12, double.infinity), color: Colors.grey),
+                            style: TextStyle(fontSize: (innerWidth * 0.03).clamp(12, double.infinity), color: Colors.grey),
                           ),
                         ),
                       Positioned(
