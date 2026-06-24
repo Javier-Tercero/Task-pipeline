@@ -209,6 +209,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
               return const EmptyState(message: 'No projects yet. Tap + to add one.');
             }
             final screenHeight = MediaQuery.of(context).size.height;
+            final cardHeight =screenHeight * 0.8;
+            final cardWidth = cardHeight * 5/7;// aspect ratio
             return Padding(
               padding: EdgeInsets.symmetric(vertical: screenHeight * 0.1),
               child: PageView.builder(
@@ -221,23 +223,27 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                     builder: (context, child) {
                       final delta = (_pageController.page ?? _pageController.initialPage.toDouble()) - index;
                       final scale = (1 - delta.abs() * 0.3).clamp(0.7, 1.0);
-                      return Transform.scale(
-                        scale: scale,
-                        child: ProjectCard(
-                          project: project,
-                          onEdit: () => _showEditDialog(context, project),
-                          onDelete: () => _showDeleteDialog(context, project),
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => TasksScreen(
-                                projectId: project.id,
-                                projectName: project.name,
+                      final shift = delta.sign * (1 - scale) * cardWidth * 0.5; // shift the card toward center to close the scale-induced gap
+                      return Transform.translate(
+                        offset: Offset(shift, 0),
+                        child: Transform.scale(
+                          scale: scale,
+                          child: ProjectCard(
+                            project: project,
+                            onEdit: () => _showEditDialog(context, project),
+                            onDelete: () => _showDeleteDialog(context, project),
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => TasksScreen(
+                                  projectId: project.id,
+                                  projectName: project.name,
+                                ),
                               ),
-                            ),
+                            ), //Navigate to the tasks screen for the selected project
                           ),
                         ),
                       );
-                    },
+                    }, // AnimatedBuilder
                   );
                 },
               ),
