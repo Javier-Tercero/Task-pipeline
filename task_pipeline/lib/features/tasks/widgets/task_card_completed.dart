@@ -2,25 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:task_pipeline/models/task.dart';
 
 /// A card representing a single task with edit and delete actions.
-class TaskCard extends StatelessWidget {
+class TaskCardCompleted extends StatelessWidget {
   final Task task;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
   final VoidCallback onComplete;
+  final VoidCallback onDelete;
 
-  const TaskCard({
+  const TaskCardCompleted({
     super.key,
     required this.task,
-    required this.onEdit,
-    required this.onDelete,
     required this.onComplete,
+    required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Colors.green.shade100.withValues(alpha: 0.5),
       child: ListTile(
-        title: Text(task.name),
+        title: Text(
+          task.name,
+          style: TextStyle(
+            color: Colors.grey.shade700,
+          ),
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -29,14 +33,6 @@ class TaskCard extends StatelessWidget {
               icon: const Icon(Icons.check_box_outline_blank),
               selectedIcon: const Icon(Icons.check_box),
               onPressed: onComplete,
-            ),
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: onEdit,
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: onDelete,
             ),
           ],
         ),

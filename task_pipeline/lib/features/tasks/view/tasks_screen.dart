@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:task_pipeline/features/tasks/data/firestore_task_service.dart';
 import 'package:task_pipeline/features/tasks/logic/task_bloc.dart';
 import 'package:task_pipeline/features/tasks/widgets/task_card.dart';
+import 'package:task_pipeline/features/tasks/widgets/task_card_completed.dart';
 import 'package:task_pipeline/models/task.dart';
 import 'package:task_pipeline/shared/widgets/empty_state.dart';
 
@@ -134,6 +135,10 @@ class _TasksView extends StatelessWidget {
     );
   }
 
+  void _completeTask(BuildContext context, Task task) {
+    context.read<TaskBloc>().add(CompletionTask(task.id, projectId, !task.isCompleted));
+  }
+
   void _pickRandomTask(BuildContext context) {
     final state = context.read<TaskBloc>().state;
 
@@ -208,12 +213,21 @@ class _TasksView extends StatelessWidget {
                     itemCount: state.tasks.length,
                     itemBuilder: (context, index) {
                       final task = state.tasks[index];
-                      return TaskCard(
-                        task: task,
-                        onEdit: () => _showEditDialog(context, task),
-                        onDelete: () => _showDeleteDialog(context, task),
-                      );
-                    },
+                      if (task.isCompleted){
+                        return TaskCardCompleted(
+                          task: task,
+                          onComplete: () => _completeTask(context, task),
+                          onDelete: () => _showDeleteDialog(context, task),
+                        );
+                      } else {
+                        return TaskCard(
+                          task: task,
+                          onComplete: () => _completeTask(context, task),
+                          onEdit: () => _showEditDialog(context, task),
+                          onDelete: () => _showDeleteDialog(context, task),
+                        );
+                      }
+                    }
                   );
                 }
                 return const SizedBox.shrink();

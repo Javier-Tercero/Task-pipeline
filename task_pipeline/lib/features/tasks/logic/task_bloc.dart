@@ -13,6 +13,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     on<AddTask>(_onAdd);
     on<EditTask>(_onEdit);
     on<DeleteTask>(_onDelete);
+    on<CompletionTask>(_onCompletion);
   }
 
   // Subscribes to the live Firestore stream — every snapshot becomes a new
@@ -47,6 +48,13 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   Future<void> _onDelete(DeleteTask event, Emitter<TaskState> emit) async {
     try {
       await _service.deleteTask(event.projectId, event.id);
+    } catch (e) {
+      emit(TasksError(e.toString()));
+    }
+  }
+  Future<void> _onCompletion(CompletionTask event, Emitter<TaskState> emit) async{
+    try {
+      await _service.completeTask(event.projectId, event.id, event.isCompleted);
     } catch (e) {
       emit(TasksError(e.toString()));
     }

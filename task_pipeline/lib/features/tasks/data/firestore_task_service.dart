@@ -23,11 +23,14 @@ class FirestoreTaskService {
 
   /// Streams all tasks for [projectId] in real time, ordered by creation time.
   Stream<List<Task>> watchTasks(String projectId) {
-    return _tasks(projectId).orderBy('createdAt').snapshots().map(
-          (snapshot) => snapshot.docs
-              .map((doc) => Task.fromFirestore(doc, projectId))
-              .toList(),
-        );
+    return _tasks(projectId).orderBy('createdAt').snapshots().map((snapshot) {
+      final tasks =
+          snapshot.docs.map((doc) => Task.fromFirestore(doc, projectId)).toList();
+      // Completed tasks sink to the bottom; createdAt order is preserved within each group.
+      final incomplete = tasks.where((task) => !task.isCompleted);
+      final completed = tasks.where((task) => task.isCompleted);
+      return [...incomplete, ...completed];
+    });
   }
 
   /// Adds a new task document under the project's tasks subcollection.
@@ -35,6 +38,7 @@ class FirestoreTaskService {
     await _tasks(projectId).add({
       'name': name,
       'createdAt': Timestamp.now(),
+      'isCompleted': false,
     });
   }
 
@@ -51,4 +55,10 @@ class FirestoreTaskService {
   Future<void> deleteTask(String projectId, String taskId) async {
     await _tasks(projectId).doc(taskId).delete();
   }
+
+  /// Marks the task identified by [taskId] as completed or not under [projectId].
+  Future<void> completeTask(String projectId, String taskId, bool isCompleted) async{
+    await _tasks(projectId).doc(taskId).update({'isCompleted': isCompleted});
+  } 
 }
+

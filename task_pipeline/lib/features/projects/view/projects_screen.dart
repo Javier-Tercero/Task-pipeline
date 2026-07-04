@@ -30,7 +30,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> with SingleTickerProvid
     super.initState();
     _snapController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 25),
+      duration: const Duration(seconds: 20),
       upperBound: 100.0,
     )..addListener(() {
         setState(() => _page = _snapController.value.clamp(0.0, _maxPage));

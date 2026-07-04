@@ -5,8 +5,9 @@ class Task {
   final String id;
   final String name;
   final String projectId;
+  final bool isCompleted;
 
-  const Task({required this.id, required this.name, required this.projectId});
+  const Task({required this.id, required this.name, required this.projectId, required this.isCompleted});
 
   /// Creates a [Task] from a Firestore document snapshot.
   ///
@@ -21,6 +22,7 @@ class Task {
       id: doc.id,
       name: data['name'] as String,
       projectId: projectId,
+      isCompleted: data['isCompleted'] as bool? ?? false, // Default to false if not present
     );
   }
 }

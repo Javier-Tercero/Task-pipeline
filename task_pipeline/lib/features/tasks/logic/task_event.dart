@@ -29,3 +29,11 @@ final class DeleteTask extends TaskEvent {
   final String projectId;
   DeleteTask(this.id, this.projectId);
 }
+
+/// Marks the task identified by [id] as completed or not, then reloads [projectId].
+final class CompletionTask extends TaskEvent {
+  final String id;
+  final String projectId;
+  final bool isCompleted;
+  CompletionTask(this.id, this.projectId, this.isCompleted);  
+}

@@ -97,7 +97,7 @@ class ProjectStack extends StatelessWidget {
                   onEdit: () => onEdit(context, project),
                   onDelete: () => onDelete(context, project),
                   onTap: () {
-                    if (delta.abs() < 0.5) {
+                    if (delta.abs() < 1.5) {
                       // Already centered — navigate to its tasks.
                       Navigator.of(context).push(
                         MaterialPageRoute(
