@@ -4,6 +4,9 @@ import 'package:task_pipeline/models/project.dart';
 /// A tappable card representing a single project.
 class ProjectCard extends StatelessWidget {
   final Project project;
+  final double cardWidth;
+  final double cardHeight;
+  final double scale;
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -11,6 +14,9 @@ class ProjectCard extends StatelessWidget {
   const ProjectCard({
     super.key,
     required this.project,
+    required this.cardWidth,
+    required this.cardHeight,
+    required this.scale,
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
@@ -18,58 +24,65 @@ class ProjectCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final padding = constraints.maxHeight * 0.1;
-            final innerWidth = constraints.maxWidth - padding;
-            final innerHeight = constraints.maxHeight - padding * 1.5;
-            return Padding(
-              padding: EdgeInsets.symmetric(horizontal: padding * 0.5, vertical: padding).copyWith(bottom: padding * 0.5),
-              child: Stack(
-                children: [
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: Text(
-                      project.name,
-                      style: TextStyle(fontSize: (innerWidth * 0.07).clamp(14, double.infinity), fontWeight: FontWeight.bold),
-                    ),
+    final padding = cardHeight * 0.1;
+    final innerWidth = cardWidth - padding;
+    final innerHeight = cardHeight - padding * 1.5;
+    return RepaintBoundary(
+      child:Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: Colors.black.withValues(alpha: 0.3), 
+            width: 1,
+            strokeAlign: BorderSide.strokeAlignInside,
+            ),
+          ),
+        elevation: 0,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: padding * 0.5, vertical: padding).copyWith(bottom: padding * 0.5),
+            child: Stack(
+              children: [
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Text(
+                    project.name,
+                    style: TextStyle(fontSize: (innerWidth * 0.07).clamp(14, double.infinity), fontWeight: FontWeight.bold),
                   ),
-                  if (project.summary != null)
-                    Positioned(
-                      top: innerHeight / 3,
-                      left: 0,
-                      right: 0,
-                      child: Text(
-                        project.summary!,
-                        textAlign: TextAlign.justify,
-                        style: TextStyle(fontSize: (innerWidth * 0.03).clamp(12, double.infinity), color: Colors.grey),
-                      ),
-                    ),
+                ),
+                if (project.summary != null)
                   Positioned(
-                    bottom: 0,
+                    top: innerHeight / 3,
                     left: 0,
                     right: 0,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: onEdit,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: onDelete,
-                        ),
-                      ],
+                    child: Text(
+                      project.summary!,
+                      textAlign: TextAlign.justify,
+                      style: TextStyle(fontSize: (innerWidth * 0.03).clamp(12, double.infinity), color: Colors.grey),
                     ),
                   ),
-                ],
-              ),
-            );
-          },
+                if (scale > 0.6) Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: onEdit,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: onDelete,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
