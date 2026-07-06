@@ -31,7 +31,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> with SingleTickerProvid
     _snapController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 20),
-      upperBound: 100.0,
+      upperBound: 1000.0,
     )..addListener(() {
         setState(() => _page = _snapController.value.clamp(0.0, _maxPage));
       });
@@ -71,7 +71,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> with SingleTickerProvid
 
     _scrollEndTimer?.cancel();
     _scrollEndTimer = Timer(const Duration(milliseconds: 200), () {
-      if (velocity.abs() >= 100) {
+      if (velocity.abs() >= 1) {
         _inertialScroll(velocity * 1000, cardWidth);
       } else {
         if (delta >= 0) {
@@ -242,7 +242,16 @@ class _ProjectsScreenState extends State<ProjectsScreen> with SingleTickerProvid
             return const Center(child: CircularProgressIndicator());
           }
           if (state is ProjectsError) {
-            return Center(child: Text(state.message));
+            return Center(child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(state.message),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () => context.read<ProjectBloc>().add(LoadProjects()),
+                ),
+              ],
+            ));
           }
           if (state is ProjectsLoaded) {
             if (state.projects.isEmpty) {

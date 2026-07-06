@@ -27,7 +27,7 @@ class FirestoreProjectService {
     await _projects.add({
       'name': name,
       'summary': summary,
-      'createdAt': Timestamp.now(),
+      'createdAt': FieldValue.serverTimestamp(),
     });
   }
 
@@ -39,8 +39,18 @@ class FirestoreProjectService {
     });
   }
 
-  /// Deletes the project document identified by [id].
+  /// Deletes the project document identified by [id], along with every task
+  /// in its tasks subcollection — Firestore never cascade-deletes
+  /// subcollections on its own, so this has to be done explicitly.
   Future<void> deleteProject(String id) async {
+    final tasks = await _projects.doc(id).collection('tasks').get();
+    for (var i = 0; i < tasks.docs.length; i += 500) {
+      final batch = FirebaseFirestore.instance.batch();
+      for (final doc in tasks.docs.skip(i).take(500)) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    }
     await _projects.doc(id).delete();
   }
 }

@@ -19,7 +19,9 @@ void main() async {
 
   // Anonymous identity so Firestore security rules can require request.auth != null.
   if (FirebaseAuth.instance.currentUser == null) {
-    await FirebaseAuth.instance.signInAnonymously();
+    try {
+      await FirebaseAuth.instance.signInAnonymously();
+    } catch(_) {}
   }
 
   runApp(const TaskPipelineApp());
