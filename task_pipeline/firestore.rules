@@ -5,23 +5,28 @@
 //
 // Layout: every project and task lives under the signed-in user's own path,
 //   users/{uid}/projects/{projectId}/tasks/{taskId}
-// so "you can only touch your own data" is one path check, and the account's
-// email must be verified (the token claim is refreshed by the app when the
-// user taps "I've verified my email").
+// so "you can only touch your own data" is one path check.
+//
+// Who counts as the owner: a guest (an anonymous account, from "Get started"),
+// or an account whose email is verified. An account that has signed up but not
+// verified yet is locked out until it does (the token claim is refreshed by the
+// app when the user taps "I've verified my email").
 //
 // Adding a field to Project or Task? Add its check to isValidProject /
 // isValidTask below in the same change. Rules don't follow the Dart code.
 
-rules_version = '3';
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function signedInAndVerified() {
-      return request.auth != null && request.auth.token.email_verified == true;
+    function isGuest() {
+      return request.auth.token.firebase.sign_in_provider == 'anonymous';
     }
 
     function isOwner(uid) {
-      return signedInAndVerified() && request.auth.uid == uid;
+      return request.auth != null
+          && request.auth.uid == uid
+          && (isGuest() || request.auth.token.email_verified == true);
     }
 
     function isValidProject(data) {

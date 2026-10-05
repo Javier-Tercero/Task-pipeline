@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Task Pipeline — plan it like a blueprint, play it like a hand</title>
+<meta name="description" content="Task Pipeline lays your projects out as cards on one table. Swipe between them, open one to see its tasks, and draw one at random when you can't decide what's next.">
+<meta property="og:title" content="Task Pipeline">
+<meta property="og:description" content="Plan it like a blueprint. Play it like a hand. Your projects as cards on one table.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://taskpipelines.com/">
+<link rel="canonical" href="https://taskpipelines.com/">
+<meta name="theme-color" content="#3B4219">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<link rel="stylesheet" href="styles.css">
+<script src="main.js" defer></script>
+<noscript><style>
+  /* Without JavaScript the cards can't be dealt, so show them already dealt. */
+  .deal-card { transform: rotate(var(--r)) !important; }
+</style></noscript>
+</head>
+<body>
+
+<!-- The app lives at app.taskpipelines.com. Both "start" links open it: ?start=trial begins a
+     guest session straight away, ?start=signin opens the sign-in form. -->
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="12" height="17" rx="2.5" transform="rotate(-10 9 15.5)"/><rect x="9" y="5" width="12" height="17" rx="2.5" fill="#F3F1E7"/><rect x="15" y="7" width="12" height="17" rx="2.5" transform="rotate(10 21 15.5)" fill="#F3F1E7"/></svg>
+      <span>Task Pipeline</span>
+    </a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#how">How it works</a>
+      <a href="#pick">Random pick</a>
+      <a href="#about">About the build</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn btn-outline btn-sm" href="https://app.taskpipelines.com/?start=signin">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="https://app.taskpipelines.com/?start=trial">Get started</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- SHEET 01 — HERO -->
+  <section id="top" class="hero">
+    <div class="wrap hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">Task Pipeline — sheet 01 / 04</p>
+        <h1>Plan it like a blueprint.<br><span class="accent">Play it like a hand.</span></h1>
+        <p class="lead">Task Pipeline lays your projects out as cards on one table. Swipe between them, open one to see its tasks — and when you can't decide what's next, draw one at random.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://app.taskpipelines.com/?start=trial">Deal me in</a>
+          <a class="btn btn-outline" href="#about">Follow the build</a>
+        </div>
+        <p class="platforms">Web · Android · iOS · Windows · macOS · Linux</p>
+      </div>
+
+      <!-- The table: drawn at a fixed 660 × 820 and scaled to fit (main.js). -->
+      <div class="fit-frame table-frame" data-fit-width="660" data-fit-height="820">
+        <div class="fit-stage table" id="table">
+          <div class="dim-line" aria-hidden="true"><span>5 : 7 — poker ratio</span></div>
+
+          <div class="outline" style="--x:20px; --y:110px; --r:-8deg" aria-hidden="true">Project 01</div>
+          <div class="outline" style="--x:210px; --y:60px; --r:0deg" aria-hidden="true">Project 02</div>
+          <div class="outline" style="--x:400px; --y:110px; --r:8deg" aria-hidden="true">Project 03</div>
+
+          <div class="deck-under" aria-hidden="true"></div>
+          <div class="deck-top card-back" aria-hidden="true"></div>
+          <div class="deck-label" aria-hidden="true">Deck</div>
+
+          <!-- Each card flies from the deck (420, 470) to its outline.
+               --dx/--dy: how far it starts from its outline; delays stagger the deal. -->
+          <div class="deal-card" style="--x:20px; --y:110px; --r:-8deg; --dx:400px; --dy:360px; --deal-delay:150ms; --undeal-delay:120ms">
+            <div class="face face-front">
+              <h3 class="pc-name">Kitchen renovation</h3>
+              <p class="pc-summary">Pick the tiles, book the plumber and keep the budget in one place.</p>
+              <p class="pc-foot"><span data-count-for="kitchen">1/4 tasks done</span><span class="dot" aria-hidden="true"></span></p>
+            </div>
+            <div class="face face-back card-back" aria-hidden="true"></div>
+          </div>
+          <div class="deal-card" style="--x:210px; --y:60px; --r:0deg; --dx:210px; --dy:410px; --deal-delay:320ms; --undeal-delay:60ms">
+            <div class="face face-front">
+              <h3 class="pc-name">Thesis — chapter 3</h3>
+              <p class="pc-summary">Methods chapter. Finish the data section before the tutor meeting.</p>
+              <p class="pc-foot"><span data-count-for="thesis">1/4 tasks done</span><span class="dot" aria-hidden="true"></span></p>
+            </div>
+            <div class="face face-back card-back" aria-hidden="true"></div>
+          </div>
+          <div class="deal-card" style="--x:400px; --y:110px; --r:8deg; --dx:20px; --dy:360px; --deal-delay:490ms; --undeal-delay:0ms">
+            <div class="face face-front">
+              <h3 class="pc-name">Trip to Lisbon</h3>
+              <p class="pc-summary">Four days in October. Flights booked, everything else still open.</p>
+              <p class="pc-foot"><span data-count-for="lisbon">1/3 tasks done</span><span class="dot" aria-hidden="true"></span></p>
+            </div>
+            <div class="face face-back card-back" aria-hidden="true"></div>
+          </div>
+
+          <button type="button" class="redeal" id="redeal">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.6-3.7"/><path d="M13 2.5v3h-3"/></svg>
+            Shuffle &amp; re-deal
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHEET 02 — THE PIPELINE -->
+  <section id="how" class="how">
+    <div class="wrap">
+      <div class="how-head">
+        <div class="stack-20">
+          <p class="eyebrow">Sheet 02 / 04 — the pipeline</p>
+          <h2>Every project is a card.<br><span class="accent">Every card holds its tasks.</span></h2>
+        </div>
+        <p class="how-intro">No endless lists. Your projects sit side by side on one table — scroll along it the same way you would in the app.</p>
+      </div>
+      <div class="dimension" aria-hidden="true"><span>Scroll sideways · tap a card to open it</span></div>
+    </div>
+
+    <!-- Filled from the project list in main.js. -->
+    <div class="card-row" id="card-row" role="group" aria-label="Sample projects"></div>
+
+    <div class="wrap how-body">
+      <div class="tasks-panel">
+        <div class="tasks-head">
+          <div>
+            <p class="label">Open project</p>
+            <p class="tasks-title" id="tasks-title">Kitchen renovation</p>
+          </div>
+          <p class="tasks-progress" id="tasks-progress">1 of 4 done</p>
+        </div>
+        <div class="progress" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div>
+        <ul class="task-list" id="task-list"></ul>
+      </div>
+
+      <ol class="steps">
+        <li>
+          <span class="step-num" aria-hidden="true">01</span>
+          <div><h3>Swipe the table</h3><p>Your projects sit side by side. Scroll sideways to move between them.</p></div>
+        </li>
+        <li>
+          <span class="step-num" aria-hidden="true">02</span>
+          <div><h3>Tap a card</h3><p>It lifts off the table and opens its task list.</p></div>
+        </li>
+        <li>
+          <span class="step-num" aria-hidden="true">03</span>
+          <div><h3>Tick things off</h3><p>Tasks are saved to your account, so they're waiting on every device you sign in from.</p></div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- SHEET 03 — RANDOM PICK -->
+  <section id="pick" class="pick">
+    <div class="wrap pick-inner">
+      <div class="pick-copy">
+        <p class="eyebrow">Sheet 03 / 04 — when you can't decide</p>
+        <h2>Stuck?<br><span class="accent">Let the deck decide.</span></h2>
+        <p class="pick-lead">Tap <b>Pick a random task</b> and Task Pipeline draws one from the project you're in. Less staring at the list, more getting on with it.</p>
+        <p class="drawing-from">Drawing from: <span id="drawing-from">Kitchen renovation</span><br>Change the project by tapping a card on sheet 02.</p>
+      </div>
+
+      <!-- The flip card: drawn at a fixed 460 × 620 and scaled to fit (main.js). -->
+      <div class="fit-frame pick-frame" data-fit-width="460" data-fit-height="620">
+        <div class="fit-stage pick-stage">
+          <div class="pick-under-1" aria-hidden="true"></div>
+          <div class="pick-under-2" aria-hidden="true"></div>
+          <div class="flip-scene">
+            <div class="flip" id="flip">
+              <div class="flip-face flip-back card-back" aria-hidden="true">
+                <div class="flip-back-inner">
+                  <svg width="56" height="56" viewBox="0 0 30 30" fill="none" stroke="#ECEBDD" stroke-width="1.2"><rect x="3" y="7" width="12" height="17" rx="2.5" transform="rotate(-10 9 15.5)"/><rect x="9" y="5" width="12" height="17" rx="2.5" fill="#454D1E"/><rect x="15" y="7" width="12" height="17" rx="2.5" transform="rotate(10 21 15.5)" fill="#454D1E"/></svg>
+                  <span>Task Pipeline</span>
+                </div>
+              </div>
+              <div class="flip-face flip-front">
+                <p class="drawn-from">Drawn from · <span id="drawn-project"></span></p>
+                <p class="drawn-name" id="drawn-name" aria-live="polite"></p>
+                <p class="drawn-foot"><span>Your next task</span><span class="dot" aria-hidden="true"></span></p>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="pick-btn" id="pick-btn">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5h3.5c2.5 0 3.5 8 6 8H16"/><path d="M2 13h3.5c1.2 0 2-1.8 2.7-3.6"/><path d="M11.5 5H16"/><path d="M14 3l2 2-2 2"/><path d="M14 11l2 2-2 2"/></svg>
+            <span id="pick-label">Pick a random task</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHEET 04 — THE BUILDER -->
+  <section id="about" class="about">
+    <div class="wrap">
+      <div class="about-inner">
+        <div class="builder">
+          <div class="builder-card">
+            <div class="photo">[YOUR PHOTO]</div>
+            <div class="builder-name">
+              <p class="builder-title">Javier</p>
+              <p class="builder-meta">Process engineer · Spain</p>
+            </div>
+          </div>
+          <div class="builder-links">
+            <a class="btn btn-primary" href="https://github.com/Javier-Tercero/Task-pipeline">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5L2 9l4 4"/><path d="M12 5l4 4-4 4"/><path d="M10.5 3l-3 12"/></svg>
+              Read the code on GitHub
+            </a>
+            <a class="btn btn-outline" href="https://www.linkedin.com/in/javier-tercero-lastres" target="_blank" rel="noopener">LinkedIn</a>
+            <a class="btn btn-outline" href="https://www.x.com/Jtlas3" target="_blank" rel="noopener">X</a>
+          </div>
+        </div>
+
+        <div class="story">
+          <p class="eyebrow">Sheet 04 / 04 — the builder</p>
+          <h2>Hi, I'm Javier.<br><span class="accent">I'm building this in public.</span></h2>
+          <p>Currently based in Spain. I'm learning Flutter, Firebase and AI integration the way that sticks for me: by building something real, one module at a time.</p>
+          <p>Task Pipeline is that something. It's a personal project, not a company — every screen on this page started as a lesson, and I'm sharing the code, the decisions and the mistakes as I go.</p>
+
+          <div class="curriculum">
+            <p class="label">The curriculum — 10 modules, four stages</p>
+            <ol class="stages">
+              <li><p class="stage-top"><span>01</span><span>Done</span></p><h3>Flutter fundamentals</h3><p>Widgets, layout and state.</p></li>
+              <li class="is-now"><p class="stage-top"><span>02</span><span>Now</span></p><h3>Firebase</h3><p>Saving data and signing in.</p></li>
+              <li><p class="stage-top"><span>03</span><span>Next</span></p><h3>AI integration</h3><p>API calls, agents and RAG.</p></li>
+              <li><p class="stage-top"><span>04</span><span>Later</span></p><h3>Ship it</h3><p>Deploying to the web with Vercel.</p></li>
+            </ol>
+          </div>
+
+          <ul class="chips" aria-label="Built with">
+            <li>Flutter</li><li>Dart</li><li>BLoC</li><li>Firebase Auth</li><li>Cloud Firestore</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="build-log">
+        <p class="build-log-head"><span>Build log — from the commit history</span><span class="muted">17 commits so far</span></p>
+        <ol class="log">
+          <li><span class="log-mark" aria-hidden="true"></span><p class="log-date">11 Mar 2026</p><p>First commit</p></li>
+          <li><span class="log-mark" aria-hidden="true"></span><p class="log-date">08 Apr 2026</p><p>First Task Pipeline screen</p></li>
+          <li><span class="log-mark" aria-hidden="true"></span><p class="log-date">22 Apr 2026</p><p>Local database working</p></li>
+          <li><span class="log-mark" aria-hidden="true"></span><p class="log-date">07 Jun 2026</p><p>BLoC + Firebase integration</p></li>
+          <li><span class="log-mark" aria-hidden="true"></span><p class="log-date">24 Jun 2026</p><p>Horizontal scroll and poker-ratio cards</p></li>
+          <li><span class="log-mark" aria-hidden="true"></span><p class="log-date">04 Jul 2026</p><p>Scroll inertia and tablet layout</p></li>
+          <li class="is-next"><span class="log-mark" aria-hidden="true"></span><p class="log-date">Next</p><p>AI features — module 3</p></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <span class="footer-name">Task Pipeline</span>
+    <span>A personal project, built in public</span>
+    <span>© 2026 Javier</span>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -24,6 +24,21 @@ final class SignUpRequested extends AuthEvent {
 
 final class SignOutRequested extends AuthEvent {}
 
+/// "Get started": try the app as a guest, without an account.
+final class GuestStartRequested extends AuthEvent {}
+
+/// Turns the current guest into a real account, keeping everything they made.
+final class GuestUpgradeRequested extends AuthEvent {
+  final String email;
+  final String password;
+  final String displayName;
+  GuestUpgradeRequested({
+    required this.email,
+    required this.password,
+    required this.displayName,
+  });
+}
+
 /// Sends a password-reset email to [email].
 final class PasswordResetRequested extends AuthEvent {
   final String email;

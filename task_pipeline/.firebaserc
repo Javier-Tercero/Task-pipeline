@@ -1,0 +1,13 @@
+{
+  "projects": {
+    "default": "task-pipeline-f2977"
+  },
+  "targets": {
+    "task-pipeline-f2977": {
+      "hosting": {
+        "landing": ["task-pipeline-f2977"],
+        "app": ["taskpipelines-app"]
+      }
+    }
+  }
+}

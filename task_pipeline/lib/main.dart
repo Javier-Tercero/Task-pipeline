@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'firebase_options.dart';
 import 'package:task_pipeline/features/auth/data/auth_service.dart';
 import 'package:task_pipeline/features/auth/logic/auth_bloc.dart';
+import 'package:task_pipeline/features/auth/logic/guest_sign_up_memory.dart';
 import 'package:task_pipeline/features/auth/view/auth_gate.dart';
 import 'package:task_pipeline/features/projects/data/firestore_project_service.dart';
 import 'package:task_pipeline/features/projects/logic/project_bloc.dart';
@@ -17,10 +18,14 @@ void main() async {
   runApp(const TaskPipelineApp());
 }
 
-/// The uid of a signed-in user with a verified email, or null. Only such a
-/// user is allowed to load data (see firestore.rules).
+/// The uid of a session allowed to load data (see firestore.rules): a guest,
+/// or an account with a verified email. Null otherwise.
 String? _sessionUid(AuthState state) {
-  return state is Authenticated && state.emailVerified ? state.uid : null;
+  return switch (state) {
+    Guest(:final uid) => uid,
+    Authenticated(:final uid, emailVerified: true) => uid,
+    _ => null,
+  };
 }
 
 class TaskPipelineApp extends StatelessWidget {
@@ -28,39 +33,42 @@ class TaskPipelineApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => AuthBloc(AuthService())..add(AuthStarted()),
-      child: BlocBuilder<AuthBloc, AuthState>(
-        // Rebuild only when the session itself changes (someone signs in,
-        // verifies, or signs out), not on every busy/error update.
-        buildWhen: (previous, current) =>
-            _sessionUid(previous) != _sessionUid(current),
-        builder: (context, state) {
-          final app = MaterialApp(
-            title: 'Task Pipeline',
-            theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF3B4219),
+    return RepositoryProvider(
+      create: (_) => GuestSignUpMemory(),
+      child: BlocProvider(
+        create: (_) => AuthBloc(AuthService())..add(AuthStarted()),
+        child: BlocBuilder<AuthBloc, AuthState>(
+          // Rebuild only when the session itself changes (someone signs in,
+          // verifies, or signs out), not on every busy/error update.
+          buildWhen: (previous, current) =>
+              _sessionUid(previous) != _sessionUid(current),
+          builder: (context, state) {
+            final app = MaterialApp(
+              title: 'Task Pipeline',
+              theme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: const Color(0xFF3B4219),
+                ),
+                useMaterial3: true,
               ),
-              useMaterial3: true,
-            ),
-            home: const AuthGate(),
-          );
+              home: const AuthGate(),
+            );
 
-          final uid = _sessionUid(state);
-          if (uid == null) return app;
+            final uid = _sessionUid(state);
+            if (uid == null) return app;
 
-          // ProjectBloc sits above MaterialApp so pushed routes (the edit
-          // screen, dialogs) can read it. It exists only while someone is
-          // signed in: signing out drops this provider, which closes the bloc
-          // and its Firestore listener.
-          return BlocProvider(
-            key: ValueKey(uid),
-            create: (_) =>
-                ProjectBloc(FirestoreProjectService())..add(LoadProjects()),
-            child: app,
-          );
-        },
+            // ProjectBloc sits above MaterialApp so pushed routes (the edit
+            // screen, dialogs) can read it. It exists only while someone is
+            // signed in: signing out drops this provider, which closes the bloc
+            // and its Firestore listener.
+            return BlocProvider(
+              key: ValueKey(uid),
+              create: (_) =>
+                  ProjectBloc(FirestoreProjectService())..add(LoadProjects()),
+              child: app,
+            );
+          },
+        ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
-/// Thin wrapper over [FirebaseAuth] for email + password accounts.
+/// Thin wrapper over [FirebaseAuth] for email + password accounts, plus guest
+/// (anonymous) accounts that can be upgraded to email + password later.
 class AuthService {
   AuthService({FirebaseAuth? auth}) : _auth = auth ?? FirebaseAuth.instance;
 
@@ -34,6 +35,32 @@ class AuthService {
     } on FirebaseAuthException {
       // Ignored on purpose, see above.
     }
+  }
+
+  /// Starts a guest session: a real account with a uid, but no email or
+  /// password yet, so the app can be tried before signing up.
+  Future<void> startGuest() => _auth.signInAnonymously();
+
+  /// Turns the current guest into an email + password account. Linking keeps
+  /// the same uid, so everything the guest created stays where it is.
+  Future<void> upgradeGuest({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
+    final guest = _requireUser();
+    final result = await guest.linkWithCredential(
+      EmailAuthProvider.credential(email: email, password: password),
+    );
+    final user = result.user ?? guest;
+    // Best effort, as in signUp: both can be redone from inside the app.
+    try {
+      if (displayName.isNotEmpty) await user.updateDisplayName(displayName);
+      await user.sendEmailVerification();
+    } on FirebaseAuthException {
+      // Ignored on purpose, see above.
+    }
+    await user.reload();
   }
 
   Future<void> signOut() => _auth.signOut();
@@ -88,7 +115,7 @@ String describeAuthError(Object error) {
       case 'network-request-failed':
         return 'No connection. Check your network and try again.';
       case 'operation-not-allowed':
-        return "Email/password sign-in isn't enabled for this Firebase project yet.";
+        return "This sign-in method isn't enabled in the Firebase console yet.";
       default:
         return error.message ?? 'Something went wrong (${error.code}).';
     }

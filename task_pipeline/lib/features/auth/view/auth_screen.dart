@@ -2,9 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:task_pipeline/features/auth/logic/auth_bloc.dart';
 
+/// The busy/error/info of the latest request, whichever state it's on: the
+/// form is used both signed out and by a guest who is signing up.
+({bool busy, String? error, String? info}) _requestStatus(AuthState state) {
+  return switch (state) {
+    Unauthenticated(:final busy, :final error, :final info) ||
+    Guest(
+      :final busy,
+      :final error,
+      :final info,
+    ) => (busy: busy, error: error, info: info),
+    _ => (busy: false, error: null, info: null),
+  };
+}
+
 /// Sign in / create account, on one screen with a mode toggle.
+///
+/// For a guest, "create account" upgrades the guest account instead of
+/// creating a new one, so their projects stay with them.
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+  /// Open in "create account" mode rather than "sign in".
+  final bool startCreating;
+
+  const AuthScreen({super.key, this.startCreating = false});
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -16,7 +36,7 @@ class _AuthScreenState extends State<AuthScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _passwordFocus = FocusNode();
-  bool _creating = false;
+  late bool _creating = widget.startCreating;
   bool _hidePassword = true;
   // True while the request in flight came from the form's submit button (as
   // opposed to "Forgot password?"), so only a failed sign-in touches the password.
@@ -35,13 +55,21 @@ class _AuthScreenState extends State<AuthScreen> {
     final current = context.read<AuthBloc>().state;
     // The fields stay focusable while a request runs (readOnly, not disabled),
     // so Enter can still reach this: ignore it until the request finishes.
-    if (current is Unauthenticated && current.busy) return;
+    if (_requestStatus(current).busy) return;
     if (!_formKey.currentState!.validate()) return;
     _submitted = true;
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     final bloc = context.read<AuthBloc>();
-    if (_creating) {
+    if (_creating && current is Guest) {
+      bloc.add(
+        GuestUpgradeRequested(
+          email: email,
+          password: password,
+          displayName: _nameController.text.trim(),
+        ),
+      );
+    } else if (_creating) {
       bloc.add(
         SignUpRequested(
           email: email,
@@ -70,6 +98,11 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
+      // A back button when this was opened over another screen (a guest's
+      // projects or tasks).
+      appBar: Navigator.of(context).canPop()
+          ? AppBar(backgroundColor: Colors.transparent)
+          : null,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -79,11 +112,9 @@ class _AuthScreenState extends State<AuthScreen> {
               child: BlocConsumer<AuthBloc, AuthState>(
                 // A request that was busy has just failed.
                 listenWhen: (previous, current) =>
-                    previous is Unauthenticated &&
-                    previous.busy &&
-                    current is Unauthenticated &&
-                    !current.busy &&
-                    current.error != null,
+                    _requestStatus(previous).busy &&
+                    !_requestStatus(current).busy &&
+                    _requestStatus(current).error != null,
                 listener: (context, state) {
                   if (!_submitted) return;
                   _submitted = false;
@@ -93,9 +124,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   _passwordFocus.requestFocus();
                 },
                 builder: (context, state) {
-                  final busy = state is Unauthenticated && state.busy;
-                  final error = state is Unauthenticated ? state.error : null;
-                  final info = state is Unauthenticated ? state.info : null;
+                  final (:busy, :error, :info) = _requestStatus(state);
                   return AutofillGroup(
                     child: Form(
                       key: _formKey,
@@ -110,9 +139,11 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            _creating
-                                ? 'Create your account'
-                                : 'Sign in to continue',
+                            !_creating
+                                ? 'Sign in to continue'
+                                : state is Guest
+                                ? 'Create your account to keep your projects'
+                                : 'Create your account',
                             textAlign: TextAlign.center,
                             style: theme.textTheme.bodyMedium,
                           ),

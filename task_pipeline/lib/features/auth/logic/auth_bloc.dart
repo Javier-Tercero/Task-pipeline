@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:task_pipeline/features/auth/data/auth_service.dart';
@@ -15,6 +13,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignInRequested>(_onSignIn);
     on<SignUpRequested>(_onSignUp);
     on<SignOutRequested>(_onSignOut);
+    on<GuestStartRequested>(_onStartGuest);
+    on<GuestUpgradeRequested>(_onUpgradeGuest);
     on<PasswordResetRequested>(_onPasswordReset);
     on<VerificationEmailRequested>(_onSendVerification);
     on<VerificationCheckRequested>(_onCheckVerification);
@@ -23,13 +23,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   AuthState _stateFor(User? user) {
     if (user == null) return const Unauthenticated();
-    if (user.isAnonymous) {
-      // Leftover from before accounts existed. Drop it so sign-in starts clean;
-      // the auth stream then reports "signed out".
-      unawaited(_service.signOut());
-      return const Unauthenticated();
-    }
+    if (user.isAnonymous) return Guest(uid: user.uid);
     return Authenticated.fromUser(user);
+  }
+
+  /// The current state with a new request status ([busy], [error], [info]).
+  ///
+  /// Keeps the kind of state: a guest who signs in or resets a password stays a
+  /// guest while it runs, instead of briefly looking signed out, which would
+  /// swap their screens underneath them.
+  AuthState _status({bool busy = false, String? error, String? info}) {
+    return switch (state) {
+      Guest(:final uid) => Guest(
+        uid: uid,
+        busy: busy,
+        error: error,
+        info: info,
+      ),
+      Authenticated current => current.withStatus(
+        busy: busy,
+        error: error,
+        info: info,
+      ),
+      _ => Unauthenticated(busy: busy, error: error, info: info),
+    };
   }
 
   /// Re-reads the current user into the state, for changes the auth stream
@@ -51,17 +68,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onSignIn(SignInRequested event, Emitter<AuthState> emit) async {
-    emit(const Unauthenticated(busy: true));
+    emit(_status(busy: true));
     try {
       await _service.signIn(event.email, event.password);
       // Success needs no emit: the auth stream reports the signed-in user.
     } catch (e) {
-      emit(Unauthenticated(error: describeAuthError(e)));
+      emit(_status(error: describeAuthError(e)));
     }
   }
 
   Future<void> _onSignUp(SignUpRequested event, Emitter<AuthState> emit) async {
-    emit(const Unauthenticated(busy: true));
+    emit(_status(busy: true));
     try {
       await _service.signUp(
         email: event.email,
@@ -71,7 +88,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // The auth stream fired before the display name was saved; re-read it.
       _emitCurrentUser(emit);
     } catch (e) {
-      emit(Unauthenticated(error: describeAuthError(e)));
+      emit(_status(error: describeAuthError(e)));
     }
   }
 
@@ -82,10 +99,52 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await _service.signOut();
     } catch (e) {
-      final current = state;
-      if (current is Authenticated) {
-        emit(current.withStatus(error: describeAuthError(e)));
-      }
+      emit(_status(error: describeAuthError(e)));
+    }
+  }
+
+  Future<void> _onStartGuest(
+    GuestStartRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(_status(busy: true));
+    try {
+      await _service.startGuest();
+      // Success needs no emit: the auth stream reports the guest.
+    } catch (e) {
+      emit(_status(error: describeAuthError(e)));
+    }
+  }
+
+  Future<void> _onUpgradeGuest(
+    GuestUpgradeRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    if (state is! Guest) return;
+    emit(_status(busy: true));
+    try {
+      await _service.upgradeGuest(
+        email: event.email,
+        password: event.password,
+        displayName: event.displayName,
+      );
+      // Linking keeps the same signed-in user, so the auth stream stays quiet;
+      // re-read it to become an (unverified) account.
+      _emitCurrentUser(emit);
+    } on FirebaseAuthException catch (e) {
+      final taken =
+          e.code == 'email-already-in-use' ||
+          e.code == 'credential-already-in-use';
+      emit(
+        _status(
+          error: taken
+              ? 'That email already has an account. Sign in with it instead '
+                    "(projects made as a guest won't carry over)."
+              : describeAuthError(e),
+        ),
+      );
+    } catch (e) {
+      emit(_status(error: describeAuthError(e)));
     }
   }
 
@@ -93,17 +152,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     PasswordResetRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(const Unauthenticated(busy: true));
+    emit(_status(busy: true));
     try {
       await _service.sendPasswordReset(event.email);
       emit(
-        Unauthenticated(
+        _status(
           info:
               'If an account exists for ${event.email}, a reset link is on its way.',
         ),
       );
     } catch (e) {
-      emit(Unauthenticated(error: describeAuthError(e)));
+      emit(_status(error: describeAuthError(e)));
     }
   }
 

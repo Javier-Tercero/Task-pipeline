@@ -18,6 +18,17 @@ final class Unauthenticated extends AuthState {
   const Unauthenticated({this.busy = false, this.error, this.info});
 }
 
+/// Trying the app without an account (an anonymous Firebase user). Has a real
+/// uid and data, and can become an [Authenticated] account by signing up.
+/// [busy], [error] and [info] describe the latest request, like the others.
+final class Guest extends AuthState {
+  final String uid;
+  final bool busy;
+  final String? error;
+  final String? info;
+  const Guest({required this.uid, this.busy = false, this.error, this.info});
+}
+
 /// Someone is signed in. Copies the few fields the UI needs instead of holding
 /// Firebase's live, mutable User object, so each state is an immutable snapshot.
 final class Authenticated extends AuthState {
