@@ -3,11 +3,25 @@ import 'dart:math' as math;
 import 'package:flutter/physics.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:task_pipeline/features/auth/logic/auth_bloc.dart';
+import 'package:task_pipeline/features/auth/view/profile_screen.dart';
 import 'package:task_pipeline/features/projects/logic/project_bloc.dart';
 import 'package:task_pipeline/features/projects/widgets/project_stack.dart';
 import 'package:task_pipeline/models/project.dart';
 import 'package:task_pipeline/shared/widgets/empty_state.dart';
+
+// Marker intents for keyboard-driven carousel navigation (desktop/web —
+// arrow keys are inert on mobile, since there's no physical keyboard event
+// to trigger them).
+class _PreviousCardIntent extends Intent {
+  const _PreviousCardIntent();
+}
+
+class _NextCardIntent extends Intent {
+  const _NextCardIntent();
+}
 
 class ProjectsScreen extends StatefulWidget {
   const ProjectsScreen({super.key});
@@ -16,9 +30,8 @@ class ProjectsScreen extends StatefulWidget {
   State<ProjectsScreen> createState() => _ProjectsScreenState();
 }
 
-
-class _ProjectsScreenState extends State<ProjectsScreen> with SingleTickerProviderStateMixin {
-
+class _ProjectsScreenState extends State<ProjectsScreen>
+    with SingleTickerProviderStateMixin {
   double _page = 0;
   double _maxPage = 0;
   late final AnimationController _snapController;
@@ -28,37 +41,42 @@ class _ProjectsScreenState extends State<ProjectsScreen> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _snapController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 20),
-      upperBound: 1000.0,
-    )..addListener(() {
-        setState(() => _page = _snapController.value.clamp(0.0, _maxPage));
-      });
+    _snapController =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(seconds: 200),
+          upperBound: 1000.0,
+        )..addListener(() {
+          setState(() => _page = _snapController.value.clamp(0.0, _maxPage));
+        });
   }
 
   void _animateToPage(double target) {
     _scrollEndTimer?.cancel();
     _snapController.value = _page;
-    _snapController.animateTo(target, curve:Curves.easeOut);
+    _snapController.animateTo(target, curve: Curves.easeOut);
   }
 
   void _inertialScroll(double velocity, double cardWidth) {
     const friction = 0.1;
     final normalizedVelocity = -velocity / cardWidth;
     final simulation = FrictionSimulation(friction, _page, normalizedVelocity);
-    if (simulation.finalX >= _maxPage || simulation.finalX <= 0 ||simulation.finalX % 1 == 0) {
+    if (simulation.finalX >= _maxPage ||
+        simulation.finalX <= 0 ||
+        simulation.finalX % 1 == 0) {
       _snapController.animateWith(simulation);
       return;
     }
-      final target = simulation.finalX.round().toDouble().clamp(0.0, _maxPage);
-      final newVelocity = (_page - target) * math.log(friction);
-      final newSimulation = FrictionSimulation(friction, _page, newVelocity);
-      _snapController.animateWith(newSimulation);
+    final target = simulation.finalX.round().toDouble().clamp(0.0, _maxPage);
+    final newVelocity = (_page - target) * math.log(friction);
+    final newSimulation = FrictionSimulation(friction, _page, newVelocity);
+    _snapController.animateWith(newSimulation);
   }
 
   void _handleScroll(PointerScrollEvent event, double cardWidth) {
-    final delta = event.scrollDelta.dx != 0 ? event.scrollDelta.dx : event.scrollDelta.dy;
+    final delta = event.scrollDelta.dx != 0
+        ? event.scrollDelta.dx
+        : event.scrollDelta.dy;
     setState(() => _page = (_page + delta / cardWidth).clamp(0.0, _maxPage));
 
     final now = event.timeStamp;
@@ -129,7 +147,9 @@ class _ProjectsScreenState extends State<ProjectsScreen> with SingleTickerProvid
                   // Use outer context — dialog context may not carry the bloc.
                   final summary = summaryController.text.trim();
                   if (summary.isNotEmpty) {
-                    context.read<ProjectBloc>().add(AddProject(name, summary: summary));
+                    context.read<ProjectBloc>().add(
+                      AddProject(name, summary: summary),
+                    );
                   } else {
                     context.read<ProjectBloc>().add(AddProject(name));
                   }
@@ -147,61 +167,28 @@ class _ProjectsScreenState extends State<ProjectsScreen> with SingleTickerProvid
     });
   }
 
-  void _showEditDialog(BuildContext context, Project project) {
-    final nameController = TextEditingController(text: project.name);
-    final summaryController = TextEditingController(text: project.summary);
-
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(project.name),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                autofocus: true,
-              ),
-              TextField(
-                controller: summaryController,
-                maxLines: null,
-                decoration: const InputDecoration(hintText: 'Project summary'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final name = nameController.text.trim();
-                final summary = summaryController.text.trim();
-                final newName = name.isNotEmpty ? name : null;
-                final newSummary = summary.isNotEmpty ? summary : null;
-                if (newName != null || newSummary != null) {
-                  context.read<ProjectBloc>().add(
-                        EditProject(project.id, newName: newName, newSummary: newSummary),
-                      );
-                }
-                Navigator.of(dialogContext).pop();
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
-    ).then((_) {
-      nameController.dispose();
-      summaryController.dispose();
-    });
+  void _randomcolorGenerator(BuildContext context) {
+    final random = math.Random();
+    final pallete = [
+      0xFFEDE3C8,
+      0xFFC97C5D,
+      0xFFF4F6F0,
+      0xFFFFEB7A,
+      0xFF7FA9E6,
+      0xFFEEAA99,
+    ];
+    final color = Color.fromARGB(
+      255,
+      random.nextInt(256),
+      random.nextInt(256),
+      random.nextInt(256),
+    );
+    // TODO: color: is a named arg but AddProject.color is positional, and
+    // AddProject now requires 2 positional args — commented out until fixed.
+    // context.read<ProjectBloc>().add(AddProject('New Project', color: color.value));
   }
 
   void _showDeleteDialog(BuildContext context, Project project) {
-
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -236,72 +223,149 @@ class _ProjectsScreenState extends State<ProjectsScreen> with SingleTickerProvid
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<ProjectBloc, ProjectState>(
-        builder: (context, state) {
-          if (state is ProjectsLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state is ProjectsError) {
-            return Center(child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(state.message),
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: () => context.read<ProjectBloc>().add(LoadProjects()),
-                ),
-              ],
-            ));
-          }
-          if (state is ProjectsLoaded) {
-            if (state.projects.isEmpty) {
-              return const EmptyState(message: 'No projects yet. Tap + to add one.');
+      appBar: AppBar(
+        title: BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, auth) {
+            final name = auth is Authenticated ? auth.displayName : null;
+            return Text(
+              name == null || name.isEmpty ? 'Projects' : "$name's projects",
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+            );
+          },
+        ),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.account_circle),
+            tooltip: 'Account',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ProfileScreen()),
+            ),
+          ),
+        ],
+      ),
+
+      body: Container(
+        child: BlocBuilder<ProjectBloc, ProjectState>(
+          builder: (context, state) {
+            if (state is ProjectsLoading) {
+              return const Center(child: CircularProgressIndicator());
             }
-            final screenHeight = MediaQuery.of(context).size.height;
-            final cardHeight = screenHeight * 0.8;
-            final cardWidth = cardHeight * 5 / 7;
-            _maxPage = (state.projects.length - 1).toDouble();
-            return Padding(
-              padding: EdgeInsets.symmetric(vertical: screenHeight * 0.1),
-              child: Listener(
-                behavior: HitTestBehavior.opaque,
-                onPointerSignal: (event) {
-                  if (event is PointerScrollEvent) {
-                    _handleScroll(event, cardWidth);
-                  }
+
+            if (state is ProjectsError) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(state.message),
+                    IconButton(
+                      icon: const Icon(Icons.refresh),
+                      onPressed: () =>
+                          context.read<ProjectBloc>().add(LoadProjects()),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (state is ProjectsLoaded) {
+              if (state.projects.isEmpty) {
+                return const EmptyState(
+                  message: 'No projects yet. Tap + to add one.',
+                );
+              }
+
+              final screenSize = MediaQuery.of(context).size;
+              final screenHeight = screenSize.height;
+              final screenWidth = screenSize.width;
+              double cardHeight = screenHeight * 0.8;
+              double cardWidth = cardHeight * 5 / 7;
+              final maxWidth = screenWidth * 0.9;
+              if (cardWidth > maxWidth) {
+                cardWidth = maxWidth;
+                cardHeight = cardWidth * 7 / 5;
+              }
+              _maxPage = (state.projects.length - 1).toDouble();
+
+              return Shortcuts(
+                shortcuts: {
+                  LogicalKeySet(LogicalKeyboardKey.arrowLeft):
+                      const _PreviousCardIntent(),
+                  LogicalKeySet(LogicalKeyboardKey.arrowRight):
+                      const _NextCardIntent(),
                 },
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onHorizontalDragStart:(_){
-                    _snapController.stop();
-                    _scrollEndTimer?.cancel();
+                child: Actions(
+                  actions: {
+                    _PreviousCardIntent: CallbackAction<_PreviousCardIntent>(
+                      onInvoke: (_) => _animateToPage(
+                        (_page.round() - 1).toDouble().clamp(0.0, _maxPage),
+                      ),
+                    ),
+                    _NextCardIntent: CallbackAction<_NextCardIntent>(
+                      onInvoke: (_) => _animateToPage(
+                        (_page.round() + 1).toDouble().clamp(0.0, _maxPage),
+                      ),
+                    ),
                   },
-                  onHorizontalDragUpdate: (details) {
-                    setState(() => _page = (_page - details.delta.dx / cardWidth).clamp(0.0, _maxPage));
-                  },
-                  onHorizontalDragEnd: (details) {
-                    if (details.velocity.pixelsPerSecond.dx.abs() > 1) {
-                      _inertialScroll(details.velocity.pixelsPerSecond.dx, cardWidth);
-                    } else {
-                      _animateToPage(_page.round().toDouble().clamp(0.0, _maxPage));
-                    }
-                  },
-                  child: ProjectStack(
-                    page: _page,
-                    projects: state.projects,
-                    cardWidth: cardWidth,
-                    cardHeight: cardHeight,
-                    onEdit: _showEditDialog,
-                    onDelete: _showDeleteDialog,
-                    onFocusRequested: (index) => _animateToPage(index.toDouble()),
+                  child: Focus(
+                    autofocus: true,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: screenHeight * 0.1,
+                      ),
+                      child: Listener(
+                        behavior: HitTestBehavior.opaque,
+                        onPointerSignal: (event) {
+                          if (event is PointerScrollEvent) {
+                            _handleScroll(event, cardWidth);
+                          }
+                        },
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onHorizontalDragStart: (_) {
+                            _snapController.stop();
+                            _scrollEndTimer?.cancel();
+                          },
+                          onHorizontalDragUpdate: (details) {
+                            setState(
+                              () =>
+                                  _page = (_page - details.delta.dx / cardWidth)
+                                      .clamp(0.0, _maxPage),
+                            );
+                          },
+                          onHorizontalDragEnd: (details) {
+                            if (details.velocity.pixelsPerSecond.dx.abs() > 1) {
+                              _inertialScroll(
+                                details.velocity.pixelsPerSecond.dx,
+                                cardWidth,
+                              );
+                            } else {
+                              _animateToPage(
+                                _page.round().toDouble().clamp(0.0, _maxPage),
+                              );
+                            }
+                          },
+                          child: ProjectStack(
+                            page: _page,
+                            projects: state.projects,
+                            cardWidth: cardWidth,
+                            cardHeight: cardHeight,
+                            onDelete: _showDeleteDialog,
+                            onFocusRequested: (index) =>
+                                _animateToPage(index.toDouble()),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            );
-          }
-          // ProjectsInitial — nothing to show yet.
-          return const SizedBox.shrink();
-        },
+              );
+            }
+            // ProjectsInitial — nothing to show yet.
+            return const SizedBox.shrink();
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddDialog(context),

@@ -35,5 +35,5 @@ final class CompletionTask extends TaskEvent {
   final String id;
   final String projectId;
   final bool isCompleted;
-  CompletionTask(this.id, this.projectId, this.isCompleted);  
+  CompletionTask(this.id, this.projectId, this.isCompleted);
 }

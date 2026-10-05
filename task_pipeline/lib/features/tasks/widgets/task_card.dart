@@ -20,7 +20,7 @@ class TaskCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        title: Text(task.name),
+        title: Text(task.name, maxLines: 1, overflow: TextOverflow.ellipsis),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -30,14 +30,8 @@ class TaskCard extends StatelessWidget {
               selectedIcon: const Icon(Icons.check_box),
               onPressed: onComplete,
             ),
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: onEdit,
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: onDelete,
-            ),
+            IconButton(icon: const Icon(Icons.edit), onPressed: onEdit),
+            IconButton(icon: const Icon(Icons.delete), onPressed: onDelete),
           ],
         ),
       ),

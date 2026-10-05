@@ -1,0 +1,52 @@
+// Firestore security rules for Task Pipeline.
+//
+// This file is the source of truth, but Firebase doesn't read it from the repo:
+// paste it into Firebase console > Firestore Database > Rules and publish.
+//
+// Layout: every project and task lives under the signed-in user's own path,
+//   users/{uid}/projects/{projectId}/tasks/{taskId}
+// so "you can only touch your own data" is one path check, and the account's
+// email must be verified (the token claim is refreshed by the app when the
+// user taps "I've verified my email").
+//
+// Adding a field to Project or Task? Add its check to isValidProject /
+// isValidTask below in the same change. Rules don't follow the Dart code.
+
+rules_version = '3';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedInAndVerified() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(uid) {
+      return signedInAndVerified() && request.auth.uid == uid;
+    }
+
+    function isValidProject(data) {
+      return data.name is string
+          && data.name.size() > 0 && data.name.size() < 200
+          && (!('summary' in data) || data.summary == null ||
+              (data.summary is string && data.summary.size() < 2000))
+          && data.createdAt is timestamp;
+    }
+
+    function isValidTask(data) {
+      return data.name is string
+          && data.name.size() > 0 && data.name.size() < 200
+          && data.isCompleted is bool
+          && data.createdAt is timestamp;
+    }
+
+    match /users/{uid}/projects/{projectId} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid) && isValidProject(request.resource.data);
+
+      match /tasks/{taskId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidTask(request.resource.data);
+      }
+    }
+  }
+}

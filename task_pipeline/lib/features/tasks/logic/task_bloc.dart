@@ -52,7 +52,11 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
       emit(TasksError(e.toString()));
     }
   }
-  Future<void> _onCompletion(CompletionTask event, Emitter<TaskState> emit) async{
+
+  Future<void> _onCompletion(
+    CompletionTask event,
+    Emitter<TaskState> emit,
+  ) async {
     try {
       await _service.completeTask(event.projectId, event.id, event.isCompleted);
     } catch (e) {

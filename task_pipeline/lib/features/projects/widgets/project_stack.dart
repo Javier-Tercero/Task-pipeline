@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:task_pipeline/features/projects/widgets/project_card.dart';
 import 'package:task_pipeline/features/tasks/view/tasks_screen.dart';
 import 'package:task_pipeline/models/project.dart';
-
+import 'package:task_pipeline/features/projects/view/edit_projects_screen.dart';
 /// Renders the focused-carousel stack of [ProjectCard]s for the given [page].
 ///
 /// Cards are positioned and scaled based on their distance from [page], using
@@ -14,7 +14,6 @@ class ProjectStack extends StatelessWidget {
   final List<Project> projects;
   final double cardWidth;
   final double cardHeight;
-  final void Function(BuildContext context, Project project) onEdit;
   final void Function(BuildContext context, Project project) onDelete;
   final void Function(int index) onFocusRequested;
 
@@ -24,7 +23,6 @@ class ProjectStack extends StatelessWidget {
     required this.projects,
     required this.cardWidth,
     required this.cardHeight,
-    required this.onEdit,
     required this.onDelete,
     required this.onFocusRequested,
   });
@@ -62,7 +60,7 @@ class ProjectStack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const renderRadius = 4;
+    const renderRadius = 3;
     final centerIndex = page.round();
 
     final indices = <int>[
@@ -86,36 +84,45 @@ class ProjectStack extends StatelessWidget {
             offset: Offset(shift, 0),
             child: Transform.scale(
               scale: transform.scale,
-              child: SizedBox(
-                width: cardWidth,
-                height: cardHeight,
-                child: ProjectCard(
-                  project: project,
-                  cardWidth: cardWidth,
-                  cardHeight: cardHeight,
-                  scale: transform.scale,
-                  onEdit: () => onEdit(context, project),
-                  onDelete: () => onDelete(context, project),
-                  onTap: () {
-                    if (delta.abs() < 1.5) {
-                      if (delta.abs() >= 0.5) {
-                        // Slightly off-center — snap to it first.
+              child: Hero(
+                tag:project.id,
+                child: SizedBox(
+                  width: cardWidth,
+                  height: cardHeight,
+                  child: ProjectCard(
+                    project: project,
+                    cardWidth: cardWidth,
+                    cardHeight: cardHeight,
+                    scale: transform.scale,
+                    onEdit: () => Navigator.of(context).push(
+                      PageRouteBuilder(
+                        opaque: false,
+                        pageBuilder: (_, _, _) => EditProjectScreen(project: project, cardWidth: cardWidth, cardHeight: cardHeight),
+                      ),
+                    ),
+                    onDelete: () => onDelete(context, project),
+                    onTap: () {
+                      if (delta.abs() < 1.5) {
+                        if (delta.abs() >= 0.5) {
+                          // Slightly off-center — snap to it first.
+                          onFocusRequested(index);
+                        }
+                        // Already centered — navigate to its tasks.
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => TasksScreen(
+                              projectId: project.id,
+                              projectName: project.name,
+                              projectColor: Theme.of(context).colorScheme.primary.toARGB32(),
+                            ),
+                          ),
+                        );
+                      } else {
+                        // Off-center — bring it into focus first.
                         onFocusRequested(index);
                       }
-                      // Already centered — navigate to its tasks.
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => TasksScreen(
-                            projectId: project.id,
-                            projectName: project.name,
-                          ),
-                        ),
-                      );
-                    } else {
-                      // Off-center — bring it into focus first.
-                      onFocusRequested(index);
-                    }
-                  },
+                    },
+                  ),
                 ),
               ),
             ),

@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:task_pipeline/models/task.dart';
 
-/// A card representing a single task with edit and delete actions.
+/// A card representing a completed task.
 class TaskCardCompleted extends StatelessWidget {
   final Task task;
   final VoidCallback onComplete;
-  final VoidCallback onDelete;
 
   const TaskCardCompleted({
     super.key,
     required this.task,
     required this.onComplete,
-    required this.onDelete,
   });
 
   @override
@@ -21,9 +19,9 @@ class TaskCardCompleted extends StatelessWidget {
       child: ListTile(
         title: Text(
           task.name,
-          style: TextStyle(
-            color: Colors.grey.shade700,
-          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(color: Colors.grey.shade700),
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,

@@ -29,10 +29,11 @@ class ProjectCard extends StatelessWidget {
     final innerHeight = cardHeight - padding * 1.5;
     return RepaintBoundary(
       child:Card(
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-            color: Colors.black.withValues(alpha: 0.3), 
+            color: Colors.black.withValues(alpha: 0.3),
             width: 1,
             strokeAlign: BorderSide.strokeAlignInside,
             ),

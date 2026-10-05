@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:task_pipeline/models/task.dart';
+import 'package:task_pipeline/shared/data/user_root.dart';
 
 /// Firestore-backed alternative to [TaskService].
 ///
-/// Tasks live in a subcollection at projects/{projectId}/tasks, where each
-/// document holds:
+/// Tasks live in a subcollection at users/{uid}/projects/{projectId}/tasks,
+/// where each document holds:
 ///   - name: String
+///   - isCompleted: bool
 ///   - createdAt: Timestamp
 ///
 /// Firestore assigns its own String document IDs, which map directly onto
@@ -15,7 +17,7 @@ class FirestoreTaskService {
 
   /// Returns the tasks subcollection for a given project.
   CollectionReference<Map<String, dynamic>> _tasks(String projectId) {
-    return FirebaseFirestore.instance
+    return currentUserRoot()
         .collection('projects')
         .doc(projectId)
         .collection('tasks');
@@ -24,8 +26,9 @@ class FirestoreTaskService {
   /// Streams all tasks for [projectId] in real time, ordered by creation time.
   Stream<List<Task>> watchTasks(String projectId) {
     return _tasks(projectId).orderBy('createdAt').snapshots().map((snapshot) {
-      final tasks =
-          snapshot.docs.map((doc) => Task.fromFirestore(doc, projectId)).toList();
+      final tasks = snapshot.docs
+          .map((doc) => Task.fromFirestore(doc, projectId))
+          .toList();
       // Completed tasks sink to the bottom; createdAt order is preserved within each group.
       final incomplete = tasks.where((task) => !task.isCompleted);
       final completed = tasks.where((task) => task.isCompleted);
@@ -35,19 +38,13 @@ class FirestoreTaskService {
 
   /// Adds a new task document under the project's tasks subcollection.
   Future<void> addTask(String projectId, String name) async {
-    await _tasks(projectId).add({
-      'name': name,
-      'createdAt': Timestamp.now(),
-      'isCompleted': false,
-    });
+    await _tasks(
+      projectId,
+    ).add({'name': name, 'createdAt': Timestamp.now(), 'isCompleted': false});
   }
 
   /// Renames the task identified by [taskId] under [projectId].
-  Future<void> editTask(
-    String projectId,
-    String taskId,
-    String newName,
-  ) async {
+  Future<void> editTask(String projectId, String taskId, String newName) async {
     await _tasks(projectId).doc(taskId).update({'name': newName});
   }
 
@@ -57,8 +54,11 @@ class FirestoreTaskService {
   }
 
   /// Marks the task identified by [taskId] as completed or not under [projectId].
-  Future<void> completeTask(String projectId, String taskId, bool isCompleted) async{
+  Future<void> completeTask(
+    String projectId,
+    String taskId,
+    bool isCompleted,
+  ) async {
     await _tasks(projectId).doc(taskId).update({'isCompleted': isCompleted});
-  } 
+  }
 }
-

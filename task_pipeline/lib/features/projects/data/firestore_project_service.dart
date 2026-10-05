@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:task_pipeline/models/project.dart';
+import 'package:task_pipeline/shared/data/user_root.dart';
 
 /// Firestore-backed alternative to [ProjectService].
 ///
-/// Projects live in the 'projects' collection, where each document holds:
+/// Projects live in the signed-in user's own collection, users/{uid}/projects,
+/// where each document holds:
 ///   - name: String
+///   - summary: String? (optional)
 ///   - createdAt: Timestamp
 ///
 /// Firestore assigns its own String document IDs, which map directly onto
@@ -13,7 +16,7 @@ class FirestoreProjectService {
   const FirestoreProjectService();
 
   CollectionReference<Map<String, dynamic>> get _projects =>
-      FirebaseFirestore.instance.collection('projects');
+      currentUserRoot().collection('projects');
 
   /// Streams all projects in real time, ordered by creation time.
   Stream<List<Project>> watchProjects() {
