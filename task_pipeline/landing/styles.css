@@ -110,21 +110,41 @@ h1, h2 {
 .btn-primary:hover { background: var(--olive-dark); border-color: var(--olive-dark); color: var(--on-olive); }
 .btn-outline { color: var(--olive); border: 1px solid rgba(59, 66, 25, 0.35); background: rgba(251, 250, 245, 0.6); }
 .btn-outline:hover { color: var(--olive); border-color: var(--olive); }
-.btn-sm { height: 44px; padding: 0 18px; font-size: 15px; }
+.btn-sm { height: 38px; padding: 0 16px; font-size: 14px; }
 
-/* Social links in each platform's own colours. */
-.btn-linkedin { background: #0A66C2; color: #FFFFFF; border: 1px solid #0A66C2; }
-.btn-linkedin:hover { background: #004182; border-color: #004182; color: #FFFFFF; }
-.btn-x { background: #000000; color: #FFFFFF; border: 1px solid #000000; }
-.btn-x:hover { background: #2F3336; border-color: #2F3336; color: #FFFFFF; }
+/* Social links: each platform's logo on its own colour. */
+.social { display: flex; justify-content: center; gap: 14px; margin-top: 4px; }
+.social-link {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  transition: background-color 150ms, transform 150ms;
+}
+.social-link:hover { color: #FFFFFF; transform: translateY(-2px); }
+.social-linkedin { background: #0A66C2; }
+.social-linkedin:hover { background: #004182; }
+.social-x { background: #000000; }
+.social-x:hover { background: #2F3336; }
 
 /* ---- Nav ------------------------------------------------------------------ */
 
+/* The bar stays at the top while scrolling; anchor jumps stop below it. */
+html { scroll-padding-top: 64px; }
+
 .nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   border-bottom: 1px solid rgba(59, 66, 25, 0.15);
-  background: rgba(243, 241, 231, 0.82);
+  background: rgba(243, 241, 231, 0.88);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
-.nav-inner { height: 88px; display: flex; align-items: center; gap: 24px; }
+.nav-inner { height: 64px; display: flex; align-items: center; gap: 24px; }
 
 .brand {
   display: flex;
