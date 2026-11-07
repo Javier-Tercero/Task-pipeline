@@ -5,15 +5,51 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Task Pipeline — plan it like a blueprint, play it like a hand</title>
 <meta name="description" content="Task Pipeline lays your projects out as cards on one table. Swipe between them, open one to see its tasks, and draw one at random when you can't decide what's next.">
+<link rel="canonical" href="https://taskpipelines.com/">
+<meta name="theme-color" content="#3B4219">
+
+<!-- Icons: SVG for modern browsers, .ico for older ones and Google, PNG for iOS home screens. -->
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32 48x48">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+<!-- Link previews (LinkedIn, WhatsApp, Facebook…). og:image must be an absolute URL. -->
+<meta property="og:site_name" content="Task Pipeline">
 <meta property="og:title" content="Task Pipeline">
 <meta property="og:description" content="Plan it like a blueprint. Play it like a hand. Your projects as cards on one table.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://taskpipelines.com/">
-<link rel="canonical" href="https://taskpipelines.com/">
-<meta name="theme-color" content="#3B4219">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
+<meta property="og:image" content="https://taskpipelines.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Task Pipeline: three project cards on a blueprint grid, with the headline Plan it like a blueprint, play it like a hand.">
+
+<!-- Link previews on X. -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@Jtlas3">
+<meta name="twitter:title" content="Task Pipeline">
+<meta name="twitter:description" content="Plan it like a blueprint. Play it like a hand. Your projects as cards on one table.">
+<meta name="twitter:image" content="https://taskpipelines.com/og-image.png">
+
+<!-- Tells search engines this page describes a free app. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Task Pipeline",
+  "description": "Task Pipeline lays your projects out as cards on one table. Swipe between them, open one to see its tasks, and draw one at random when you can't decide what's next.",
+  "url": "https://taskpipelines.com/",
+  "image": "https://taskpipelines.com/og-image.png",
+  "applicationCategory": "ProductivityApplication",
+  "operatingSystem": "Web, Android, iOS, Windows, macOS, Linux",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+  "author": { "@type": "Person", "name": "Javier Tercero Lastres", "url": "https://www.linkedin.com/in/javier-tercero-lastres" }
+}
+</script>
+<!-- Start downloading the fonts the first screen needs straight away
+     (they're declared in styles.css). -->
+<link rel="preload" href="fonts/instrument-serif.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/plex-sans.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="styles.css">
 <script src="main.js" defer></script>
 <noscript><style>
@@ -77,7 +113,7 @@
                --dx/--dy: how far it starts from its outline; delays stagger the deal. -->
           <div class="deal-card" style="--x:20px; --y:110px; --r:-8deg; --dx:400px; --dy:360px; --deal-delay:150ms; --undeal-delay:120ms">
             <div class="face face-front">
-              <h3 class="pc-name">Kitchen renovation</h3>
+              <p class="pc-name">Kitchen renovation</p>
               <p class="pc-summary">Pick the tiles, book the plumber and keep the budget in one place.</p>
               <p class="pc-foot"><span data-count-for="kitchen">1/4 tasks done</span><span class="dot" aria-hidden="true"></span></p>
             </div>
@@ -85,7 +121,7 @@
           </div>
           <div class="deal-card" style="--x:210px; --y:60px; --r:0deg; --dx:210px; --dy:410px; --deal-delay:320ms; --undeal-delay:60ms">
             <div class="face face-front">
-              <h3 class="pc-name">Thesis — chapter 3</h3>
+              <p class="pc-name">Thesis — chapter 3</p>
               <p class="pc-summary">Methods chapter. Finish the data section before the tutor meeting.</p>
               <p class="pc-foot"><span data-count-for="thesis">1/4 tasks done</span><span class="dot" aria-hidden="true"></span></p>
             </div>
@@ -93,7 +129,7 @@
           </div>
           <div class="deal-card" style="--x:400px; --y:110px; --r:8deg; --dx:20px; --dy:360px; --deal-delay:490ms; --undeal-delay:0ms">
             <div class="face face-front">
-              <h3 class="pc-name">Trip to Lisbon</h3>
+              <p class="pc-name">Trip to Lisbon</p>
               <p class="pc-summary">Four days in October. Flights booked, everything else still open.</p>
               <p class="pc-foot"><span data-count-for="lisbon">1/3 tasks done</span><span class="dot" aria-hidden="true"></span></p>
             </div>
@@ -200,7 +236,7 @@
       <div class="about-inner">
         <div class="builder">
           <div class="builder-card">
-          <div class="photo"><img src="javier.jpg" alt="Javier" width="983" height="1647"></div>
+          <div class="photo"><img src="javier.webp" alt="Javier" width="540" height="608" loading="lazy" decoding="async"></div>
             <div class="builder-name">
               <p class="builder-title">Javier</p>
               <p class="builder-meta">Process engineer · Spain</p>

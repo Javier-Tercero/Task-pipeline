@@ -2,6 +2,45 @@
    Desktop follows the design (1440 wide); below 1100px sections stack, and
    below 640px everything is sized for a phone. */
 
+/* Fonts, served from this site (Latin characters only), so the page needs no
+   connection to Google before it can show text. `swap` shows a fallback font
+   until each one has loaded. */
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 400 600; /* one variable file covers every weight in between */
+  font-display: swap;
+  src: url('fonts/plex-sans.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/plex-mono-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('fonts/plex-mono-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/instrument-serif.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/instrument-serif-italic.woff2') format('woff2');
+}
+
 :root {
   --ink: #1C1F0E;
   --olive: #3B4219;
