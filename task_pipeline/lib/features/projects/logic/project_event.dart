@@ -5,11 +5,13 @@ sealed class ProjectEvent {}
 /// Loads all projects from the database.
 final class LoadProjects extends ProjectEvent {}
 
-/// Persists a new project with [name].
+/// Persists a new project with [name], under [id] (from
+/// [ProjectBloc.newProjectId]).
 final class AddProject extends ProjectEvent {
+  final String id;
   final String name;
   final String? summary;
-  AddProject(this.name, {this.summary});
+  AddProject(this.id, this.name, {this.summary});
 }
 
 /// Renames the project identified by [id].

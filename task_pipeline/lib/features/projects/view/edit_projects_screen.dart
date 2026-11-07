@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:task_pipeline/shared/extensions/context.dart';
 import 'package:task_pipeline/models/project.dart';
 import 'package:task_pipeline/features/projects/logic/project_bloc.dart';
 
@@ -12,11 +13,18 @@ class EditProjectScreen extends StatefulWidget {
   final Project? project;
   final double cardWidth;
   final double cardHeight;
+
+  /// When creating: called with the new project's ID once its card is in the
+  /// carousel, just before this screen closes, so the carousel can centre it
+  /// for the card to shrink onto.
+  final void Function(String id)? onCreated;
+
   const EditProjectScreen({
     super.key,
     this.project,
     required this.cardWidth,
     required this.cardHeight,
+    this.onCreated,
   });
   @override
   State<EditProjectScreen> createState() => _EditProjectScreenState();
@@ -34,6 +42,13 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
 
   bool get _creating => widget.project == null;
 
+  // While a new project is being saved: the buttons are disabled.
+  bool _saving = false;
+
+  // The new project's ID once its card is in the carousel. The Hero takes it
+  // as its tag, so closing flies onto that card instead of the add button.
+  String? _createdId;
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -43,7 +58,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
+    final screenSize = context.screenSize;
     final padding = cardHeight * 0.1;
     final innerWidth = cardWidth - padding;
     final hintStyle = TextStyle(
@@ -65,7 +80,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
             // the Hero has a full-screen rect to land on.
             child: Hero(
               // MUST match the carousel card's tag, or the add button's.
-              tag: widget.project?.id ?? newProjectHeroTag,
+              tag: _createdId ?? widget.project?.id ?? newProjectHeroTag,
               child: Card(
                 margin: EdgeInsets.zero,
                 clipBehavior: Clip.antiAlias,
@@ -151,11 +166,13 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   TextButton(
-                                    onPressed: () => Navigator.pop(context),
+                                    onPressed: _saving
+                                        ? null
+                                        : () => Navigator.pop(context),
                                     child: const Text('Cancel'),
                                   ),
                                   FilledButton(
-                                    onPressed: _save,
+                                    onPressed: _saving ? null : _save,
                                     child: Text(_creating ? 'Create' : 'Save'),
                                   ),
                                 ],
@@ -189,20 +206,55 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
     final summary = _summaryController.text.trim();
     final project = widget.project;
     if (project == null) {
-      context.read<ProjectBloc>().add(
-        AddProject(name, summary: summary.isNotEmpty ? summary : null),
-      );
-    } else {
-      context.read<ProjectBloc>().add(
-        EditProject(
-          project.id,
-          newName: name, // always set — required
-          newSummary: summary.isNotEmpty
-              ? summary
-              : null, // summary stays optional
-        ),
-      );
+      _create(name, summary.isNotEmpty ? summary : null);
+      return;
     }
+    context.read<ProjectBloc>().add(
+      EditProject(
+        project.id,
+        newName: name, // always set — required
+        newSummary: summary.isNotEmpty
+            ? summary
+            : null, // summary stays optional
+      ),
+    );
     Navigator.pop(context);
+  }
+
+  /// Saves a new project, then closes onto its card in the carousel, the same
+  /// way an edit closes onto the card it edited.
+  ///
+  /// That card only exists once the project comes back from the database, so
+  /// this waits for it first. It's usually instant: Firestore shows a write
+  /// locally before the server has confirmed it.
+  Future<void> _create(String name, String? summary) async {
+    final bloc = context.read<ProjectBloc>();
+    final id = bloc.newProjectId();
+    setState(() => _saving = true);
+
+    // Listen before adding, so the state that brings the project can't be
+    // missed. Gives up after 3 seconds, or on an error.
+    final arrived = bloc.stream
+        .map<bool?>((state) {
+          if (state is ProjectsLoaded) {
+            return state.projects.any((p) => p.id == id) ? true : null;
+          }
+          return state is ProjectsError ? false : null;
+        })
+        .firstWhere((found) => found != null, orElse: () => false)
+        .timeout(const Duration(seconds: 3), onTimeout: () => false);
+    bloc.add(AddProject(id, name, summary: summary));
+
+    final found = await arrived == true;
+    if (!mounted) return;
+    if (found) widget.onCreated?.call(id);
+    // Without the card (an error, or a very slow save) the tag stays the add
+    // button's, so the editor shrinks back into it as before.
+    setState(() => _createdId = found ? id : null);
+    // Close on the next frame, once the carousel shows the card centred and
+    // this Hero carries its tag: that's when the flight picks its target.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Navigator.pop(context);
+    });
   }
 }

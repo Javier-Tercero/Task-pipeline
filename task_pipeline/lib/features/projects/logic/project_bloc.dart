@@ -15,6 +15,10 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
     on<DeleteProject>(_onDelete);
   }
 
+  /// An ID for a project that hasn't been saved yet, so the screen creating it
+  /// can find its card once it arrives (see AddProject).
+  String newProjectId() => _service.newProjectId();
+
   // Subscribes to the live Firestore stream — every snapshot becomes a new
   // state, so the UI stays in sync without ever needing to reload manually.
   Future<void> _onLoad(LoadProjects event, Emitter<ProjectState> emit) async {
@@ -30,7 +34,7 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
   // to trigger a reload after a successful write.
   Future<void> _onAdd(AddProject event, Emitter<ProjectState> emit) async {
     try {
-      await _service.addProject(event.name, summary: event.summary);
+      await _service.addProject(event.id, event.name, summary: event.summary);
     } catch (e) {
       emit(ProjectsError(e.toString()));
     }

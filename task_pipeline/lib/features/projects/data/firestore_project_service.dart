@@ -25,9 +25,13 @@ class FirestoreProjectService {
         );
   }
 
-  /// Adds a new project document with an auto-generated ID.
-  Future<void> addProject(String name, {String? summary}) async {
-    await _projects.add({
+  /// A fresh auto-generated document ID, so the caller knows a new project's
+  /// ID before saving it (see [addProject]).
+  String newProjectId() => _projects.doc().id;
+
+  /// Adds a new project document under [id], from [newProjectId].
+  Future<void> addProject(String id, String name, {String? summary}) async {
+    await _projects.doc(id).set({
       'name': name,
       'summary': summary,
       'createdAt': FieldValue.serverTimestamp(),

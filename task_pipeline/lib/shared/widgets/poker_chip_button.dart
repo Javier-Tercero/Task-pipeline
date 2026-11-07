@@ -12,11 +12,15 @@ class PokerChipButton extends StatelessWidget {
     required this.tooltip,
     required this.onPressed,
     this.size = 56,
+    this.color,
+    this.markingsColor,
   });
 
   final IconData icon;
   final String tooltip;
   final VoidCallback? onPressed;
+  final Color? color;
+  final Color? markingsColor;
 
   /// Diameter. 56 matches a regular floating action button, 40 a small one.
   final double size;
@@ -24,21 +28,23 @@ class PokerChipButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final disc = color ?? colors.primary;
+    final markings = markingsColor ?? colors.onPrimary;
     return Tooltip(
       message: tooltip,
       child: Material(
         shape: const CircleBorder(),
-        color: colors.primary,
+        color: disc,
         elevation: 4,
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onPressed,
           customBorder: const CircleBorder(),
           child: CustomPaint(
-            painter: _PokerChipPainter(markings: colors.onPrimary),
+            painter: _PokerChipPainter(markings: markings),
             child: SizedBox.square(
               dimension: size,
-              child: Icon(icon, color: colors.onPrimary, size: size * 0.4),
+              child: Icon(icon, color: markings, size: size * 0.4),
             ),
           ),
         ),

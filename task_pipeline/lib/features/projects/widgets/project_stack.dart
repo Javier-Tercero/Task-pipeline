@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:task_pipeline/features/projects/widgets/project_card.dart';
 import 'package:task_pipeline/features/tasks/view/tasks_screen.dart';
 import 'package:task_pipeline/models/project.dart';
-import 'package:task_pipeline/features/projects/view/edit_projects_screen.dart';
 /// Renders the focused-carousel stack of [ProjectCard]s for the given [page].
 ///
 /// Cards are positioned and scaled based on their distance from [page], using
@@ -14,7 +13,6 @@ class ProjectStack extends StatelessWidget {
   final List<Project> projects;
   final double cardWidth;
   final double cardHeight;
-  final void Function(BuildContext context, Project project) onDelete;
   final void Function(int index) onFocusRequested;
 
   const ProjectStack({
@@ -23,7 +21,6 @@ class ProjectStack extends StatelessWidget {
     required this.projects,
     required this.cardWidth,
     required this.cardHeight,
-    required this.onDelete,
     required this.onFocusRequested,
   });
 
@@ -93,14 +90,6 @@ class ProjectStack extends StatelessWidget {
                     project: project,
                     cardWidth: cardWidth,
                     cardHeight: cardHeight,
-                    scale: transform.scale,
-                    onEdit: () => Navigator.of(context).push(
-                      PageRouteBuilder(
-                        opaque: false,
-                        pageBuilder: (_, _, _) => EditProjectScreen(project: project, cardWidth: cardWidth, cardHeight: cardHeight),
-                      ),
-                    ),
-                    onDelete: () => onDelete(context, project),
                     onTap: () {
                       if (delta.abs() < 1.5) {
                         if (delta.abs() >= 0.5) {

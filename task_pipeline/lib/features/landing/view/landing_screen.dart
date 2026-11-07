@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:task_pipeline/shared/extensions/context.dart';
 import 'package:task_pipeline/features/auth/logic/auth_bloc.dart';
 import 'package:task_pipeline/features/auth/view/auth_screen.dart';
 import 'package:task_pipeline/shared/widgets/cross_pattern_painter.dart';
@@ -27,7 +28,7 @@ class LandingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final wide = MediaQuery.sizeOf(context).width >= _wideLayout;
+    final wide = context.screenSize.width >= _wideLayout;
 
     return Scaffold(
       body: Stack(

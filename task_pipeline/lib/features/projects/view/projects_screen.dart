@@ -11,6 +11,7 @@ import 'package:task_pipeline/features/auth/view/auth_screen.dart';
 import 'package:task_pipeline/features/auth/view/profile_screen.dart';
 import 'package:task_pipeline/features/projects/logic/project_bloc.dart';
 import 'package:task_pipeline/features/projects/view/edit_projects_screen.dart';
+import 'package:task_pipeline/shared/extensions/context.dart';
 import 'package:task_pipeline/shared/widgets/cross_pattern_painter.dart';
 import 'package:task_pipeline/features/projects/widgets/project_stack.dart';
 import 'package:task_pipeline/features/tasks/view/tasks_screen.dart';
@@ -43,6 +44,15 @@ class _ProjectsScreenState extends State<ProjectsScreen>
   late final AnimationController _snapController;
   Timer? _scrollEndTimer;
   Duration? _lastScrollTime;
+
+    /// The project on the centred card, or null when there are none.
+  Project? _centredProject() {
+    final state = context.read<ProjectBloc>().state;
+    if (state is! ProjectsLoaded || state.projects.isEmpty) return null;
+    final index = _page.round().clamp(0, state.projects.length - 1);
+    return state.projects[index];
+  }
+
 
   @override
   void initState() {
@@ -99,6 +109,7 @@ class _ProjectsScreenState extends State<ProjectsScreen>
     _snapController.value = _page;
     _snapController.animateTo(target, curve: Curves.easeOut);
   }
+
 
   void _inertialScroll(double velocity, double cardWidth) {
     const friction = 0.1;
@@ -170,16 +181,50 @@ class _ProjectsScreenState extends State<ProjectsScreen>
   }
 
   /// Opens the project editor with no project, which creates one. The add
-  /// button and the editor share a Hero tag, so the new card grows out of it.
+  /// button and the editor share a Hero tag, so the new card grows out of it;
+  /// on Create it shrinks onto the new project's card, centred by
+  /// [_jumpToProject].
   void _openNewProject(BuildContext context) {
-    final card = _cardSizeFor(MediaQuery.of(context).size);
+    final card = _cardSizeFor(context.screenSize);
     Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
-        pageBuilder: (_, _, _) =>
-            EditProjectScreen(cardWidth: card.width, cardHeight: card.height),
+        pageBuilder: (_, _, _) => EditProjectScreen(
+          cardWidth: card.width,
+          cardHeight: card.height,
+          onCreated: _jumpToProject,
+        ),
       ),
     );
+  }
+
+    void _editProject(BuildContext context) {
+    final card = _cardSizeFor(context.screenSize);
+    final project = _centredProject();
+    if (project == null) return;
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        pageBuilder: (_, _, _) => EditProjectScreen(
+          project: project,
+          cardWidth: card.width,
+          cardHeight: card.height,
+          onCreated: _jumpToProject,
+        ),
+      ),
+    );
+  }
+
+  /// Puts the carousel on the project [id] at once, without animating: it
+  /// happens behind the editor, just before it closes onto that card.
+  void _jumpToProject(String id) {
+    final state = context.read<ProjectBloc>().state;
+    if (state is! ProjectsLoaded) return;
+    final index = state.projects.indexWhere((project) => project.id == id);
+    if (index < 0) return;
+    _snapController.stop();
+    _scrollEndTimer?.cancel();
+    setState(() => _page = index.toDouble());
   }
 
   void _randomcolorGenerator(BuildContext context) {
@@ -203,7 +248,9 @@ class _ProjectsScreenState extends State<ProjectsScreen>
     // context.read<ProjectBloc>().add(AddProject('New Project', color: color.value));
   }
 
-  void _showDeleteDialog(BuildContext context, Project project) {
+  void _showDeleteDialog(BuildContext context) {
+    final project = _centredProject();
+    if (project == null) return;
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -280,8 +327,8 @@ class _ProjectsScreenState extends State<ProjectsScreen>
                       );
                     }
 
-                    final screenHeight = MediaQuery.of(context).size.height;
-                    final card = _cardSizeFor(MediaQuery.of(context).size);
+                    final screenHeight = context.screenSize.height;
+                    final card = _cardSizeFor(context.screenSize);
                     final cardWidth = card.width;
                     final cardHeight = card.height;
                     _maxPage = (state.projects.length - 1).toDouble();
@@ -361,7 +408,6 @@ class _ProjectsScreenState extends State<ProjectsScreen>
                                   projects: state.projects,
                                   cardWidth: cardWidth,
                                   cardHeight: cardHeight,
-                                  onDelete: _showDeleteDialog,
                                   onFocusRequested: (index) =>
                                       _animateToPage(index.toDouble()),
                                 ),
@@ -406,10 +452,33 @@ class _ProjectsScreenState extends State<ProjectsScreen>
                     ),
             ),
           ),
+          Positioned(
+            bottom: MediaQuery.paddingOf(context).bottom + 16,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              spacing: 12,
+              children: [
+                PokerChipButton(
+                  icon: Icons.edit,
+                  color: Colors.blue.shade700,
+                  tooltip: 'Edit Project',
+                  onPressed: () => _editProject(context),
+                ),
+                PokerChipButton(
+                  icon: Icons.delete,
+                  color: Colors.red.shade700,
+                  tooltip: 'delete Project',
+                  onPressed: () => _showDeleteDialog(context),
+                ),
+              ],
+            ),
+          )
         ],
       ),
       // The chip carries the Hero itself (FloatingActionButton used to), so the
-      // new-project card still grows out of it.
+      // new-project card still grows out of it (and returns to it on Cancel).
       floatingActionButton: Hero(
         tag: newProjectHeroTag,
         child: PokerChipButton(

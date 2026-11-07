@@ -6,20 +6,14 @@ class ProjectCard extends StatelessWidget {
   final Project project;
   final double cardWidth;
   final double cardHeight;
-  final double scale;
   final VoidCallback onTap;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
 
   const ProjectCard({
     super.key,
     required this.project,
     required this.cardWidth,
     required this.cardHeight,
-    required this.scale,
     required this.onTap,
-    required this.onEdit,
-    required this.onDelete,
   });
 
   @override
@@ -63,24 +57,6 @@ class ProjectCard extends StatelessWidget {
                       style: TextStyle(fontSize: (innerWidth * 0.03).clamp(12, double.infinity), color: Colors.grey),
                     ),
                   ),
-                if (scale > 0.6) Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: onEdit,
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: onDelete,
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
           ),
